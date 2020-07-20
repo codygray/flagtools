@@ -240,6 +240,18 @@ ${makeFlagInfoStickyAndFloatAbovePost
    }
    
 
+   .mod-actions:before,
+   .mod-actions:after
+   {
+      content: ' ';
+      display: table;
+   }
+
+   .mod-actions:after
+   {
+      clear: both;
+   }
+
    .mod-actions button
    {
       margin: 0 2px;
@@ -943,6 +955,7 @@ function initQuestionPage()
          .empty();
       let activeCount = 0;
       let inactiveCount = 0;
+      let nonDisputedRedCount = 0;
       for (const flag of postFlags.flags)
       {
          if (flag.active)
@@ -954,21 +967,12 @@ function initQuestionPage()
             inactiveCount += flag.flaggers.length;
          }
 
-         if ((flag.description.toLowerCase() === "spam" || flag.description.toLowerCase() === "rude or abusive")
-            && !flag.active
-            && !tools.find(".flag-dispute-spam").length)
+         if ((flag.description.toLowerCase() === "spam" || flag.description.toLowerCase() === "rude or abusive") &&
+             (flag.result.toLowerCase() !== "disputed"))
          {
-            $("<button type='button' class='flag-dispute-spam s-btn s-btn__filled' title='Clears all rude/abusive and spam flags on this post, as well as any automatic Community downvotes. The flags will be marked as disputed. If this post reached the flag limit, it will be undeleted and unlocked, and the owner will have their rep restored.'>Clear all spam/abusive flags</button>")
-            .appendTo(modActions)
-            .click(function()
-            {
-               if (confirm("This will undelete the post, remove all penalties against the author, and dispute ALL rude/abusive and spam flags EVER raised on it.\n\nAre you sure?"))
-               {
-                  FlagFilter.tools.disputeSpamAbusiveFlags(postFlags.postId);
-               }
-            });
+            ++nonDisputedRedCount;
          }
-         
+
          FlagFilter.tools.predictMigrationDest(flag.description)
             .done(function(site)
             {
@@ -987,10 +991,23 @@ function initQuestionPage()
                   })
                   .appendTo(modActions);
             })
-         
+
          flagContainer.append(RenderFlagItem(false, flag, postFlags.reviews));
       }
-      
+
+      if ((nonDisputedRedCount > 0) && (!tools.find(".flag-dispute-spam").length))
+      {
+         $("<button type='button' class='flag-dispute-spam s-btn s-btn__filled' title='Clears all rude/abusive and spam flags on this post, as well as any automatic Community downvotes. The flags will be marked as disputed. If this post reached the flag limit, it will be undeleted and unlocked, and the owner will have their rep restored.'>Clear all spam/abusive flags</button>")
+         .appendTo(modActions)
+         .click(function()
+         {
+            if (confirm("This will undelete the post, remove all penalties against the author, and dispute ALL rude/abusive and spam flags EVER raised on it.\n\nAre you sure?"))
+            {
+               FlagFilter.tools.disputeSpamAbusiveFlags(postFlags.postId);
+            }
+         });
+      }
+
       tools.toggleClass("active-flag", !!activeCount);
 
       if (activeCount > 0)
