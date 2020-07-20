@@ -221,6 +221,11 @@ ${makeFlagInfoStickyAndFloatAbovePost
       padding: 6px;
    }
 
+   .mod-tools .dismiss-flags-popup .mark-flag-declined.-btn
+   {
+      color: var(--red-800);
+   }
+
    .comment .flag-dismiss-comment
    {
       grid-column: 1 / span 2;
@@ -568,25 +573,7 @@ function initTools()
       },
       
       flagDeclineUI: function(uiParent)
-      {
-         const result = $.Deferred();
-         const declineForm = $(`
-            <div class="dismiss-flags-popup">
-               <form class="g-column _gutters">
-                  <label class="f-label">Decline flag(s) because&hellip;</label>
-                  <div class="g-col g-row _gutters">
-                     <div class="g-col -input">
-                         <input type="text" maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm">
-                     </div>
-                     <div class="g-col -btn">
-                       <button class="s-btn s-btn__filled s-btn__danger mark-flag-declined" value="other" type="submit" disabled>Decline</button>
-                     </div>
-                  </div>
-                  <span class="text-counter cool">enter at least 10 characters of righteous indignation</span>
-               </form>
-            </div>
-         `);
-           
+      {          
          const reasons = {
             technical: {
                id: 1,
@@ -667,7 +654,7 @@ function initTools()
                title: "use when the flagger has asked for a targeted/fraudulent voting investigation, but that turned up nothing even remotely justifying a flag",
             },
          };
-           
+
          const lastDecline = localStorage["flaaaaags.last-decline"];
          if (lastDecline)
          {
@@ -678,6 +665,25 @@ function initTools()
                title: "re-use the last custom reason that you typed to decline a flag"
             };
          }
+
+         const result = $.Deferred();
+
+         const declineForm = $(`
+            <div class="dismiss-flags-popup">
+               <form class="g-column _gutters">
+                  <label class="f-label">Decline flag(s) because&hellip;</label>
+                  <div class="g-col g-row _gutters">
+                     <div class="g-col -input">
+                         <input type="text" maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm">
+                     </div>
+                     <div class="g-col -btn">
+                       <button class="s-btn s-btn__filled s-btn__danger mark-flag-declined" value="other" type="submit" disabled>Decline</button>
+                     </div>
+                  </div>
+                  <span class="text-counter cool">enter at least 10 characters of righteous indignation</span>
+               </form>
+            </div>
+         `);
          
          for (const reason in reasons)
          {
