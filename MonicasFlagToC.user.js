@@ -128,6 +128,7 @@ function initStyles()
    {
       grid-column: 1 / span 2;
       margin-bottom: 15px;
+      padding: 9px 12px 0;
    }
 
    .mod-tools.mod-tools-comment-header
@@ -604,14 +605,26 @@ function initTools()
                prompt: "we do not routinely delete questions that have received answers...",
                title: "use when the flagger is requesting deletion of a question with answers that you don't think should be deleted",
             },
-            notspam: {
+            changeaccept: {
                id: -6,
+               text: `Moderators cannot set or change the accepted answer. This can only be done by the original asker, and is optional. Please see: ${window.location.hostname}/help/accepted-answer`,
+               prompt: "moderators cannot set or change the accepted answer...",
+               title: "use when the flagger is requesting that the accepted answer be set/changed",
+            },
+            downvotewhine: {
+               id: -7,
+               text: 'Users can vote on posts as they see fit, whether up or down. Moderators do not intervene in legitimate voting. To see common reasons for downvoting, hover over the downvote arrow and read its tooltip.',
+               prompt: "Users can vote on posts as they see fit, whether up or down. Moderators do not intervene...",
+               title: "use when the flagger is whining about downvotes (and it is not a legitimate flag about vote fraud)",
+            },
+            notspam: {
+               id: -8,
                text: "While this question is of extremely low quality and needs to be closed, it is not spam. Please review the list of flag options that are available to you, and choose a more appropriate flag next time.",
                prompt: "while this question is of extremely low quality and needs to be closed, it is not spam...",
                title: "use when the flagger has raised a spam flag on garbage (recognizes the legitimacy of their concerns, but gently corrects the specific flag choice)",
             },
             nofraud: {
-               id: -7,
+               id: -9,
                text: "Thank you for your flag. A moderator has carefully investigated the situation, but did not find any evidence of suspicious or targeted voting for/against your account.",
                prompt: "no evidence of suspicious or targeted voting was found for/against your account",
                title: "use when the flagger has asked for a targeted/fraudulent voting investigation, but that turned up nothing even remotely justifying a flag",
