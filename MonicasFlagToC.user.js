@@ -63,13 +63,13 @@ function initStyles()
       opacity: 1;
       z-index: 1050; -- rise above left sidebar
    }
-   
+
    #postflag-bar>div
    {
       display: grid;
    }
-   
-   
+
+
    #postflag-bar .flag-summary, .js-post-flag-bar .flag-summary
    {
       display: flex;
@@ -78,14 +78,14 @@ function initStyles()
       margin-left: 40px;
       margin-right: 40px;
    }
-   
+
    .flagToC
    {
       list-style-type: none;
       margin: 0;
       padding: 0;
    }
-   
+
    .flagToC>li
    {
       padding: 4px;
@@ -96,7 +96,7 @@ function initStyles()
       border-radius: 4px;
       background-color: #fff;
    }
-   
+
    .flagToC>li ul
    {
       margin: 0;
@@ -114,7 +114,7 @@ function initStyles()
       white-space: nowrap;
       overflow: hidden;
    }
-   
+
    .flagToC>li ul>li.inactive, .flagToC>li ul>li.inactive a
    {
       color: #6A7E7C;
@@ -238,8 +238,8 @@ ${makeFlagInfoStickyAndFloatAbovePost
       /* white-space: nowrap; */
    }
 
-   /**/   
-   
+   /**/
+
    /* in which I mangle the site's flexbox styles to work for a purpose they were never intended to serve.
         this is almost certainly a bad idea, but hopefully easier than chasing site styling and beats 9 bold blue buttons in 18 sq.in.
          pretty unlikely a designer will ever see this, so I should be safe
@@ -257,7 +257,7 @@ ${makeFlagInfoStickyAndFloatAbovePost
    {
       text-align: left;
    }
-   
+
 
    .mod-actions:before,
    .mod-actions:after
@@ -282,7 +282,7 @@ ${makeFlagInfoStickyAndFloatAbovePost
    }
 
    /**/
-   
+
    .mod-tools ul.flags .flag-info .flag-creation-user
    {
       white-space: nowrap;
@@ -319,12 +319,12 @@ ${makeFlagInfoStickyAndFloatAbovePost
    /*
      Put comment delete link in consistent place
    */
-   
+
    .comment, .comment .flags
    {
       clear: both;
    }
-   
+
    .comment .js-comment-delete
    {
       float: right;
@@ -341,7 +341,7 @@ ${makeFlagInfoStickyAndFloatAbovePost
 
    @supports (display: grid) and (not (display: contents) )
    {
-      ul.comments-list .active-flag .comment-actions 
+      ul.comments-list .active-flag .comment-actions
       {
          width: 54px;
       }
@@ -448,7 +448,7 @@ function initTools()
       formatDate: function(date)
       {
          if ( !date.getTime() ) return "(??)";
-         
+
          // mostly stolen from SE.com
          const delta = (((new Date()).getTime() - date.getTime()) / 1000);
 
@@ -482,7 +482,7 @@ function initTools()
             + ' at'
             + ' ' + date.toLocaleString(undefined, {minute: "2-digit", hour: "2-digit", hour12: false, timeZone: "UTC"});
       },
-      
+
       formatISODate: function(date)
       {
          return date.toJSON().replace(/\.\d+Z/, 'Z');
@@ -522,7 +522,7 @@ function initTools()
       {
          return $.post('/admin/posts/' + postId + '/move-comments-to-chat', {fkey:StackExchange.options.user.fkey});
       },
-      
+
       makeWait: function(msecs)
       {
          return function()
@@ -533,7 +533,7 @@ function initTools()
             return result.promise();
          }
       },
-      
+
       flagHelpfulUI: function(uiParent)
       {
          const result = $.Deferred();
@@ -553,13 +553,13 @@ function initTools()
                 </form>
             </div>
          `);
-         
+
          uiParent.parent().find(".dismiss-flags-popup").remove();
          helpfulForm
             .insertAfter(uiParent)
             .slideDown(250)
             .find("button,input").first().focus();
-         
+
          helpfulForm.find("input[type=text]").charCounter({min: 0, max: 200, target: helpfulForm.find(".text-counter")});
 
          helpfulForm.find(".mark-flag-helpful").click(function(ev)
@@ -568,12 +568,12 @@ function initTools()
             helpfulForm.remove();
             result.resolve({helpful: true, declineId: 0, comment: helpfulForm.find("input[type=text]").val()});
          });
-         
+
          return result.promise();
       },
-      
+
       flagDeclineUI: function(uiParent)
-      {          
+      {
          const reasons = {
             technical: {
                id: 1,
@@ -684,21 +684,21 @@ function initTools()
                </form>
             </div>
          `);
-         
+
          for (const reason in reasons)
          {
             $(`<button class="s-btn s-btn__outlined s-btn__danger g-col -btn mark-flag-declined" type="button">${reasons[reason].prompt}</button>`)
                .attr({value: reason, title: reasons[reason].title})
                .insertAfter(declineForm.find("form>label,form>button:last").last());
          }
-         
+
          uiParent.parent().find(".dismiss-flags-popup").remove();
          declineForm
             .insertAfter(uiParent)
-            .slideDown(250)
-            .find("button,input").get(1).focus();
-         
+            .slideDown(250);
+
          const customDeclineField = declineForm.find("input[type=text]")
+            .focus()
             .on("input", function()
             {
                const text = customDeclineField.val();
@@ -709,7 +709,7 @@ function initTools()
          declineForm.find(".mark-flag-declined").click(function(ev)
          {
             ev.preventDefault();
-            
+
             let declineId;
             let declineText;
             if (reasons[this.value])
@@ -728,7 +728,7 @@ function initTools()
             declineForm.remove();
             result.resolve({helpful: false, declineId: declineId, comment: declineText});
          });
-         
+
          return result.promise();
       },
 
@@ -850,7 +850,7 @@ function initQuestionPage()
          const btn = $(this);
          const post = btn.parents(".question, .answer");
          const postId = post.data("questionid") || post.data("answerid");
-         
+
          const choice = btn.is(".flag-dismiss-all-helpful") ? FlagFilter.tools.flagHelpfulUI(btn.parent())
                                                             : FlagFilter.tools.flagDeclineUI(btn.parent());
 
@@ -873,14 +873,14 @@ function initQuestionPage()
          const link = holder.find('a.show-all-flags');
          const spinner = $("<span> loading <img src='//sstatic.net/img/progress-dots.gif'></span>");
          spinner.insertAfter(link.hide());
-         
+
          RefreshFlagsForPost(postId, true)
             .catch(function() {
                link.show();
                spinner.remove();
             });
       })
-   
+
    $(document)
       .ajaxSuccess(function(event, XMLHttpRequest, ajaxOptions)
       {
@@ -905,7 +905,7 @@ function initQuestionPage()
             setTimeout(() => RefreshFlagsForPost(postId), 1);
          }
       });
-      
+
    function RefreshFlagsForPost(postId, expandComments)
    {
       const postContainer = $(".answer[data-answerid='"+postId+"'],.question[data-questionid='"+postId+"']")
@@ -1042,14 +1042,14 @@ function initQuestionPage()
       const commentFlags = postFlags.commentFlags.reduce((acc, f) => acc + f.flaggers.length, 0);
       // this... really just hacks around incomplete information in the waffle bar
       postFlags.assumeInactiveCommentFlagCount = totalFlags - (activeCount+inactiveCount) - commentFlags;
-      
+
       if (postFlags.flags.length)
       {
          const flagSummary = [];
          if (activeCount > 0) flagSummary.push(activeCount + " active post flags");
          if (inactiveCount) flagSummary.push(inactiveCount + " resolved post flags");
          if (postFlags.assumeInactiveCommentFlagCount) flagSummary.push(`*<a class='show-all-flags' data-postid='${postFlags.postId}' title='Not sure about these flags; click to load accurate information for ${postFlags.assumeInactiveCommentFlagCount} undefined flags'> click to load full flag info</a>`);
-         
+
          tools.show()
               .find("h3.flag-summary").html(flagSummary.join("; "));
       }
@@ -1060,7 +1060,7 @@ function initQuestionPage()
       }
       else
          tools.hide();
-      
+
       if (postFlags.commentFlags.length && forceCommentVisibility)
       {
          const issues = postContainer.find(".js-post-issue"),
@@ -1086,9 +1086,9 @@ function initQuestionPage()
       {
          ShowCommentFlags(postFlags.postId);
       }
-      
+
 /* diagnostics
-      
+
       if ( postFlags.reviews )
       {
          let reviews = '';
@@ -1101,7 +1101,7 @@ function initQuestionPage()
             `;
             if ( task.result )
                reviews += `<span>ended
-                  <span title="${FlagFilter.tools.formatISODate(task.resultDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(task.resultDate)}</span>: 
+                  <span title="${FlagFilter.tools.formatISODate(task.resultDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(task.resultDate)}</span>:
                ${task.result}</span>`;
             else
                reviews += "<i>pending...</i>";
@@ -1110,7 +1110,7 @@ function initQuestionPage()
          tools.find("ul.reviews").empty().append(reviews);
       }
 */
-      
+
       setTimeout(() => StackExchange.realtime.updateRelativeDates(), 100);
    }
 
@@ -1127,7 +1127,7 @@ function initQuestionPage()
          commentModToolsContainer.remove();
          return;
       }
-      
+
       if (!commentModToolsContainer.length)
       {
          commentModToolsContainer = $(`<div class="mod-tools mod-tools-comment-header">
@@ -1137,7 +1137,7 @@ function initQuestionPage()
             .addClass("mod-tools")
             .find(">ul.comments-list").before(commentModToolsContainer);
       }
-      
+
       commentContainer
          .removeClass("dno")
          .find(".comment").removeClass("active-flag").end()
@@ -1156,7 +1156,7 @@ function initQuestionPage()
                .appendTo(comment.find(".comment-text"))
                .find(".flags");
          }
-         
+
          comment.addClass("mod-tools-comment");
 
          if (flag.active)
@@ -1168,7 +1168,7 @@ function initQuestionPage()
          {
             inactiveCount += flag.flaggers.length;
          }
-         
+
          if (!comment.length) continue;
 
          flagsShown += flag.flaggers.length;
@@ -1183,7 +1183,7 @@ function initQuestionPage()
                .appendTo(comment.find(".comment-actions"));
          }
       }
-      
+
       commentModToolsContainer.toggleClass("active-flag", !!activeCount);
 
       const totalFlags = tools.data("totalflags");
@@ -1192,18 +1192,18 @@ function initQuestionPage()
       {
          flagSummary.push(`<a class='show-all-flags' data-postid='${postFlags.postId}' title='load complete flag details'>${activeCount} active comment flags</a>`);
       }
-      
+
       inactiveCount = inactiveCount || postFlags.assumeInactiveCommentFlagCount;
       if (inactiveCount)
       {
          flagSummary.push(`${inactiveCount} resolved comment flags${postFlags.assumeInactiveCommentFlagCount ? '*' : ''}`);
       }
-         
+
       if (flagsShown < (inactiveCount + activeCount))
       {
          flagSummary.push(`(${flagsShown} shown; load all comments to view the rest)`);
       }
-      
+
       commentContainer.find("h3.comment-flag-summary")
          .html(flagSummary.join("; "));
    }
@@ -1317,7 +1317,7 @@ function initQuestionPage()
 
       return flagItem;
    }
-   
+
    function IsReviewFlag(flag)
    {
       return flag.active &&
@@ -1325,7 +1325,7 @@ function initQuestionPage()
               flag.description.toLowerCase() == "very low quality" ||
               /Low answer quality score/.test(flag.description));
    }
-   
+
    function RenderToCInWaffleBar()
    {
       let flagToC = $("<ul class='flagToC'>");
@@ -1366,10 +1366,10 @@ function initQuestionPage()
             .text(postType + " " + attribution)
             .append($("<ul>").append(flagSummaries))
          );
-         
+
          flagToC.append(entry);
       }
-      
+
       if (!Object.keys(flagCache).length)
       {
          flagToC = $("<div style='padding:4px;' class='mx24'>All active flags on this page are currently in review; check back later to see if they were handled.</div>");
@@ -1402,18 +1402,18 @@ function initQuestionPage()
          return ret;
       }
    }
-      
+
    function LoadAllFlags(postId)
    {
       return LoadTimeline().then(ParseTimeline).then( af => flagCache[postId] = af );
-   
+
       function LoadTimeline()
       {
          return fetch("/posts/" + postId + "/timeline?mod=true", {method: "GET", credentials: "include"})
             .then( resp => resp.text() )
             .then( respText => new DOMParser().parseFromString(respText, "text/html") );
       }
-      
+
       function ParseTimeline(dom)
       {
          const ret = {
@@ -1422,7 +1422,7 @@ function initQuestionPage()
             commentFlags: [],
             reviews: []
          };
-         
+
          const flagList = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr[data-eventtype=flag]"));
          const flaggedCommentList = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr[data-eventtype=comment] td.event-comment .js-toggle-comment-flags[data-flag-ids]"));
          const reviewList = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr[data-eventtype=review]"));
@@ -1449,9 +1449,9 @@ function initQuestionPage()
             const deleted = deleteRow && deleteRow.querySelector(":scope>td.creation-date span.relativetime");
             const mod = deleteRow && deleteRow.querySelector(":scope>td>span.js-created-by>a");
             const result = deleteRow && deleteRow.querySelector(":scope>td.event-comment>span");
-            
+
             if (!created || !eventType || !flagType) continue;
-            
+
             const flag =
             {
                flagIds: [id],
@@ -1471,7 +1471,7 @@ function initQuestionPage()
                   flagCreationDate: FlagFilter.tools.parseISODate(created.title)
                }]
             };
-               
+
             if (eventType.textContent.trim() === "comment flag")
             {
                const comment = commentMap[id];
@@ -1479,7 +1479,7 @@ function initQuestionPage()
                {
                   flag.commentId = +comment.dataset.eventid;
                }
-               
+
                ret.commentFlags.push(flag);
             }
             else
@@ -1487,7 +1487,7 @@ function initQuestionPage()
                ret.flags.push(flag);
             }
          }
-         
+
          ret.reviews = reviewList.map(function(row)
          {
             const id = +row.dataset.eventid;
@@ -1497,7 +1497,7 @@ function initQuestionPage()
             const completed = deleteRow && deleteRow.querySelector(":scope>td.creation-date span.relativetime");
             const resultType = deleteRow && deleteRow.querySelector(":scope>td.event-type+td>span");
             const result = deleteRow && deleteRow.querySelector(":scope>td.event-comment>span");
-            
+
             return {
                id: id,
                creationDate: FlagFilter.tools.parseISODate(created.title),
@@ -1507,9 +1507,9 @@ function initQuestionPage()
                result: (result && result.textContent.trim()) || (resultType && resultType.textContent.trim())
             };
          });
-         
+
          // consolidate flags with similar description and disposition
-         
+
          function consolidate(flagList)
          {
             return Object.values(flagList.reduce( function(acc, f)
@@ -1530,10 +1530,10 @@ function initQuestionPage()
                   return acc;
                }, {}) );
          }
-         
+
          ret.flags = consolidate(ret.flags);
          ret.commentFlags = consolidate(ret.commentFlags);
-         
+
          return ret;
       }
    }
@@ -1636,7 +1636,7 @@ function initQuestionPage()
                      ids = ids.split ? ids.split(';')
                         .map(id => +id) : [ids];
                      const mess = flag.find(">div:first .js-flag-text");
-                     
+
                      let foundUser = false;
                      const tmp = $("<div>");
                      const description = tmp.append( mess.contents().filter( function() { foundUser = foundUser || $(this).has("a[href^='/users/']").length; return !foundUser; }).clone() ).html().replace(/\s+-\s+$/, '');
@@ -1671,7 +1671,7 @@ function initQuestionPage()
                      let foundUser = false;
                      const tmp = $("<div>");
                      const description = tmp.append( mess.contents().filter( function() { foundUser = foundUser || $(this).has("a[href^='/users/']").length; return !foundUser; }).clone() ).html().replace(/\s+-\s+$/, '');
-                     
+
                      const commentId = $(".js-comment-link", this).attr("href").match(/#comment(\d+)_\d+/);
                      const flaggers = mess.find(">span>a[href^='/users/']")
                            .map(function()
@@ -1687,7 +1687,7 @@ function initQuestionPage()
                               };
                            })
                            .toArray();
-                     
+
                      if (!commentId || commentId.length < 2) return;
                      return {
                         commentId: +commentId[1],
@@ -1706,7 +1706,7 @@ function initQuestionPage()
          })
          .toArray();
    }
-      
+
 }
-   
+
 });
