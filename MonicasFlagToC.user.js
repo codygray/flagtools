@@ -43,6 +43,8 @@ function with_jquery(f)
 
 with_jquery(function()
 {
+   const makeFlagInfoStickyAndFloatAbovePost = true;
+
    window.FlagFilter = window.FlagFilter || {};
 
    initStyles();
@@ -129,6 +131,15 @@ function initStyles()
       grid-column: 1 / span 2;
       margin-bottom: 15px;
       padding: 9px 12px 0;
+${makeFlagInfoStickyAndFloatAbovePost
+?
+`     position: sticky;
+      top: 0;
+      z-index: 1050;
+`
+:
+      ''
+}
    }
 
    .mod-tools.mod-tools-comment-header
@@ -904,8 +915,15 @@ function initQuestionPage()
     </div>
     <ul class="reviews">
     </ul>
-</div>`)
-            .insertBefore(postContainer.find("div:has(>.comments)"));
+</div>`);
+         if (makeFlagInfoStickyAndFloatAbovePost)
+         {
+            tools.prependTo(postContainer);
+         }
+         else
+         {
+            tools.insertBefore(postContainer.find("div:has(>.comments)"));
+         }
 
          if (flags)
          {
