@@ -166,6 +166,7 @@ function initStyles()
    .mod-tools.mod-tools-post .dismiss-flag-popup-buttons
    {
       float: right;
+      margin-left: 3px;
    }
 
    .mod-tools.mod-tools-post .dismiss-flag-popup-buttons .flag-dismiss-decline
@@ -313,38 +314,61 @@ function initStyles()
 //
 function initTools()
 {
-   FlagFilter.tools = $.extend({}, FlagFilter.tools, {
-      CloseReasons: { Duplicate: 'Duplicate', OffTopic: 'OffTopic', Unclear: 'Unclear', TooBroad: 'TooBroad', OpinionBased: 'OpinionBased' },
-      UniversalOTReasons: { Default: 1, BelongsOnSite: 2, Other: 3 },
-
-      // format for close options:
-      // { closeReasonId            string - one of the close reasons above
-      // duplicateOfQuestionId      number - question id for duplicate, otherwise not set
-      // closeAsOffTopicReasonId    number - site-specific reason ID for OT, otherwise not set
-      // belongsOnBaseHostAddress   string - host domain for destination site for OT, otherwise not set
-      // offTopicOtherText          string - custom OT text for when the OT reason is "other"
-      //                                     and offTopicOtherCommentId is not set
-      // offTopicOtherCommentId     string - reference to an existing comment on the post describing
-      //                                     why the question is off-topic for when the OT reason is "other"
-      //                                     and offTopicOtherText is not specified.
-      // originalOffTopicOtherText  string - the placeholder / prefix text used to prompt for the OT other reason,
-      //                                     used when offTopicOtherText is specified, otherwise not set
-      // }
-
-      closeQuestion: function(postId, closeOptions)
+   FlagFilter.tools = $.extend({}, FlagFilter.tools,
+   {
+      // closeReasonId: 'SiteSpecific', 'NeedMoreFocus', 'NeedsDetailsOrClarity', 'OpinionBased', 'Duplicate'
+      // if closeReasonId is 'SiteSpecific', offtopicReasonId : 11-norepro, 13-nomcve, 16-toolrec, 3-custom/other, 2-migrate
+      closeQuestion: function(postId,
+                              closeReasonId,
+                              offTopicReasonId,
+                              duplicateOfQuestionId = null,
+                              belongsOnBaseHostAddress = null,
+                              offTopicOtherText = 'I’m voting to close this question because ')
       {
-         closeOptions.fkey = StackExchange.options.user.fkey;
-         return $.post('/flags/questions/' + postId + '/close/add', closeOptions)
+         if (typeof postId === 'undefined' || postId === null) return;
+         if (typeof closeReasonId === 'undefined' || closeReasonId === null) return;
+         if (closeReasonId === 'SiteSpecific' && (typeof offTopicReasonId === 'undefined' || offTopicReasonId === null)) return;
+
+         if (closeReasonId === 'Duplicate')
+         {
+            if (duplicateOfQuestionId === null)
+            {
+               return;
+            }
+            offTopicReasonId = null;
+         }
+         if (closeReasonId === 'SiteSpecific' && offTopicReasonId === 2)
+         {
+            if (belongsOnBaseHostAddress === null)
+            {
+               return;
+            }
+         }
+         if (offTopicOtherText === null)
+         {
+            offTopicOtherText = 'I’m voting to close this question because ';
+         }
+
+         return $.post(
+         {
+            url: `/flags/questions/${postId}/close/add`,
+            data:
+            {
+               'fkey': StackExchange.options.user.fkey,
+               'closeReasonId': closeReasonId,
+               'duplicateOfQuestionId': duplicateOfQuestionId,
+               'siteSpecificCloseReasonId': offTopicReasonId,
+               'siteSpecificOtherText': offTopicOtherText,
+               //'siteSpecificOtherCommentId': '',
+               'originalSiteSpecificOtherText': 'I’m voting to close this question because ',
+               'belongsOnBaseHostAddress': belongsOnBaseHostAddress
+            }
+         });
       },
 
       migrateTo: function(postId, destinationHost)
       {
-         return FlagFilter.tools.closeQuestion(postId,
-            {
-               closeReasonId: FlagFilter.tools.CloseReasons.OffTopic,
-               closeAsOffTopicReasonId: FlagFilter.tools.UniversalOTReasons.BelongsOnSite,
-               belongsOnBaseHostAddress: destinationHost
-            });
+         return FlagFilter.tools.closeQuestion(postId, 'SiteSpecific', 2, null, destinationHost);
       },
 
       annotateUser: function(userId, annotation)
@@ -588,7 +612,7 @@ function initTools()
             },
             nofraud: {
                id: -7,
-               text: "A moderator has carefully investigated in response to your flag, but did not find any evidence of suspicious or targeted voting for/against your account.",
+               text: "Thank you for your flag. A moderator has carefully investigated the situation, but did not find any evidence of suspicious or targeted voting for/against your account.",
                prompt: "no evidence of suspicious or targeted voting was found for/against your account",
                title: "use when the flagger has asked for a targeted/fraudulent voting investigation, but that turned up nothing even remotely justifying a flag",
             },
@@ -657,25 +681,32 @@ function initTools()
          return loadMigrationSites()
             .then(function(sites)
             {
-               let ret = {baseHostAddress: '', name: ''};
-               
-               if (!/belongs on|moved? to|migrat|better fit/.test(flagText))
+               let ret = { baseHostAddress: '', name: '' };
+
+               if (!/[a-zA-Z]+.stack(exchange|overflow)(.com)?|belongs (on|to)|move|migrat|ask|fit|best|better/i.test(flagText))
                {
                   return ret;
                }
-               
+
                sites.forEach(function(site)
                {
-                  const baseHost = site.site_url.replace(/^https?:\/\//, '');
-                  if (baseHost == window.location.host) return;
-                  
-                  if ((RegExp(baseHost.replace('.stackexchange.com', ''), 'i').test(flagText)
-                     || RegExp(site.name.replace(' ', '\\s?'), 'i').test(flagText))
-                     && ret.baseHostAddress.length < baseHost.length)
-                     ret = { baseHostAddress: baseHost, name: site.name };
+                  const siteBaseHost = site.site_url.replace(/^https?:\/\//, '');
+                  if (siteBaseHost == window.location.host) return;
+
+                  const siteBaseHostStripped = siteBaseHost.replace('.com', '');
+
+                  if (RegExp(`\\b${siteBaseHostStripped}\\b`, 'i').test(flagText) ||
+                      RegExp(`\\b${siteBaseHostStripped}\\b`.replace('.stackexchange', ''), 'i').test(flagText) ||
+                      RegExp(`\\b${siteBaseHostStripped}\\b`.replace('.stackoverflow', ''), 'i').test(flagText) ||
+                      RegExp(site.name.replace(' ', '\\s?'), 'i').test(flagText))
+                  {
+                     ret = { baseHostAddress: siteBaseHost, name: site.name };
+                     return ret;
+                  }
                });
+
                return ret;
-            });
+         });
 
          function loadMigrationSites()
          {
@@ -693,7 +724,6 @@ function initTools()
                ret.resolve(siteCache.sites);
                return ret;
             }
-
 
             return $.get('https://api.stackexchange.com/2.2/sites?pagesize=500')
                .then(function(data)
@@ -913,12 +943,11 @@ function initQuestionPage()
             {
                if (modActions.find(".migration-link").length) return;
                if (!site.name) return;
-               $("<input class='migration-link' type='button' title='migrate this question to a site chosen by the magic 8-ball'>")
-                  .val("belongs on " + site.name + "?")
+               $(`<button type='button' class='migration-link s-btn s-btn__muted s-btn__outlined' title='migrate this question to a site chosen by the magic 8-ball'>Migrate to ${site.name}</button>`)
                   .click(function()
                   {
                      const questionId = location.pathname.match(/\/questions\/(\d+)/)[1];
-                     if (confirm("Really migrate this question to " + site.name + "?"))
+                     if (confirm(`This question will be immediately migrated to ${site.name} (${site.baseHostAddress}).\n\nContinue with the migration?`))
                      {
                         FlagFilter.tools.migrateTo(questionId, site.baseHostAddress)
                            .done(function() { location.reload() })
