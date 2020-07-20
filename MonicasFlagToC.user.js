@@ -238,24 +238,26 @@ ${makeFlagInfoStickyAndFloatAbovePost
       /* white-space: nowrap; */
    }
 
-   /**/
-
-   /* in which I mangle the site's flexbox styles to work for a purpose they were never intended to serve.
-        this is almost certainly a bad idea, but hopefully easier than chasing site styling and beats 9 bold blue buttons in 18 sq.in.
-         pretty unlikely a designer will ever see this, so I should be safe
-   */
-   .dismiss-flags-popup
+   .mod-tools .dismiss-flags-popup
    {
-      padding: 16px 0;
+      padding: 0 0 16px 0;
+      clear: both;
       display: none;
    }
-   .dismiss-flags-popup form .g-row>.-btn
+
+   .mod-tools .dismiss-flags-popup form
    {
-      flex: initial;
+      display: flex;
    }
-   .dismiss-flags-popup form>button.g-col
+
+   .mod-tools .dismiss-flags-popup form>button.g-col
    {
       text-align: left;
+   }
+
+   .mod-tools .dismiss-flags-popup .g-col.-input + .g-col.-btn
+   {
+      margin-right: -1px;
    }
 
 
@@ -539,10 +541,10 @@ function initTools()
          const result = $.Deferred();
          const helpfulForm = $(`
             <div class="dismiss-flags-popup">
-               <form class="g-column _gutters">
+               <form class="g-column _gutters" style="width: 100%;">
                   <label class="f-label">Mark flag(s) as helpful because&hellip;</label>
                   <div class="g-col g-row _gutters">
-                     <div class="g-col -input">
+                     <div class="g-col -input" style="width: 100%;">
                          <input type="text" maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm">
                      </div>
                      <div class="g-col -btn">
@@ -673,7 +675,7 @@ function initTools()
                <form class="g-column _gutters">
                   <label class="f-label">Decline flag(s) because&hellip;</label>
                   <div class="g-col g-row _gutters">
-                     <div class="g-col -input">
+                     <div class="g-col -input" style="width: 100%;">
                          <input type="text" maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm">
                      </div>
                      <div class="g-col -btn">
