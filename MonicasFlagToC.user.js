@@ -178,7 +178,7 @@ ${makeFlagInfoStickyAndFloatAbovePost
    .mod-tools.mod-tools-post .dismiss-flag-popup-buttons
    {
       float: right;
-      margin-left: 3px;
+      margin-left: 9px;
    }
 
    .mod-tools.mod-tools-post .dismiss-flag-popup-buttons .flag-dismiss-decline
@@ -198,11 +198,29 @@ ${makeFlagInfoStickyAndFloatAbovePost
       margin: 10px 0 10px 10px;
    }
 
+   .mod-tools ul.flags li:before,
+   .mod-tools ul.flags li:after
+   {
+      content: ' ';
+      display: table;
+   }
+
+   .mod-tools ul.flags li:after
+   {
+      clear: both;
+   }
+
    .mod-tools .flag-outcome
    {
       margin-left: 20px;
    }
-   
+
+   .mod-tools .dismiss-flags-popup .mark-flag-helpful,
+   .mod-tools .dismiss-flags-popup .mark-flag-declined
+   {
+      padding: 6px;
+   }
+
    .comment .flag-dismiss-comment
    {
       grid-column: 1 / span 2;
@@ -225,10 +243,6 @@ ${makeFlagInfoStickyAndFloatAbovePost
    {
       padding: 16px 0;
       display: none;
-   }
-   .dismiss-flags-popup form
-   {
-      display: flex;
    }
    .dismiss-flags-popup form .g-row>.-btn
    {
@@ -595,61 +609,61 @@ function initTools()
             stdflags: {
                id: 4,
                text: "",
-               prompt: "using standard flags helps us prioritize problems and resolve them faster...",
+               prompt: "using <b>standard flags</b> helps us prioritize problems and resolve them faster...",
                title: "use when the flagger used a custom flag in a situation where a standard flag would be more appropriate",
             },
             needsedits: {
                id: -1,
                text: "The issue(s) you note with this post can be corrected simply by editing it. Even anonymous users have the ability to suggest edits to posts. This does not require moderator intervention.",
-               prompt: "post needs editing, not moderator intervention",
+               prompt: "post needs <b>editing, not moderator</b> intervention",
                title: "use when the post needs edits (either by the flagger or someone else), rather than moderator intervention",
             },
             notdupe: {
                id: -2,
                text: "If you disagree that your question is a duplicate, you should edit the question to clarify the difference and why those answers didn't solve your problem. See: https://meta.stackoverflow.com/q/252252",
-               prompt: "if you disagree that your question is a duplicate...",
+               prompt: "if you <b>disagree that your question is a duplicate</b>...",
                title: "use when the flag is complaining to a moderator that the question was closed as a duplicate",
             },
             badmigration: {
                id: -3,
                text: "Questions should not be migrated away unless they are clearly (1) off-topic for the site where they were originally asked, (2) on-topic for the proposed target site, (3) of notably high quality.",
-               prompt: "this question should not be migrated elsewhere",
+               prompt: "this question should <b>not be migrated</b> elsewhere",
                title: "use when the flag is requesting migration of a question that is unsuitable for migration",
             },
             oldmigration: {
                id: -4,
                text: "Questions that are more than 60 days old cannot be migrated to other Stack Exchange sites.",
-               prompt: "questions more than 60 days old cannot be migrated",
+               prompt: "questions <b>more than 60 days old</b> cannot be migrated",
                title: "use when the flag is requesting migration of a question that is too old (> 60 days) to migrate",
             },
             nodeletion: {
                id: -5,
                text: `We do not routinely delete questions that have received answers, as those answers may prove useful to future viewers. Please see: ${window.location.hostname}/help/what-to-do-instead-of-deleting-question`,
-               prompt: "we do not routinely delete questions that have received answers...",
+               prompt: "we <b>do not routinely delete</b> questions that have received answers...",
                title: "use when the flagger is requesting deletion of a question with answers that you don't think should be deleted",
             },
             changeaccept: {
                id: -6,
                text: `Moderators cannot set or change the accepted answer. This can only be done by the original asker, and is optional. Please see: ${window.location.hostname}/help/accepted-answer`,
-               prompt: "moderators cannot set or change the accepted answer...",
+               prompt: "moderators cannot set or change the <b>accepted answer</b>...",
                title: "use when the flagger is requesting that the accepted answer be set/changed",
             },
             downvotewhine: {
                id: -7,
                text: 'Users can vote on posts as they see fit, whether up or down. Moderators do not intervene in legitimate voting. To see common reasons for downvoting, hover over the downvote arrow and read its tooltip.',
-               prompt: "Users can vote on posts as they see fit, whether up or down. Moderators do not intervene...",
+               prompt: "Users can <b>vote</b> on posts as they see fit, whether up or down. Moderators do not intervene...",
                title: "use when the flagger is whining about downvotes (and it is not a legitimate flag about vote fraud)",
             },
             notspam: {
                id: -8,
                text: "While this question is of extremely low quality and needs to be closed, it is not spam. Please review the list of flag options that are available to you, and choose a more appropriate flag next time.",
-               prompt: "while this question is of extremely low quality and needs to be closed, it is not spam...",
+               prompt: "while this question is of extremely low quality and needs to be closed, it is <b>not spam</b>...",
                title: "use when the flagger has raised a spam flag on garbage (recognizes the legitimacy of their concerns, but gently corrects the specific flag choice)",
             },
             nofraud: {
                id: -9,
                text: "Thank you for your flag. A moderator has carefully investigated the situation, but did not find any evidence of suspicious or targeted voting for/against your account.",
-               prompt: "no evidence of suspicious or targeted voting was found for/against your account",
+               prompt: "<b>no evidence of suspicious or targeted voting</b> was found for/against your account",
                title: "use when the flagger has asked for a targeted/fraudulent voting investigation, but that turned up nothing even remotely justifying a flag",
             },
          };
@@ -660,7 +674,7 @@ function initTools()
             reasons["lastEntered"] = {
                id: 0,
                text: lastDecline,
-               prompt: lastDecline,
+               prompt: `<b>last reason:</b> ${lastDecline}`,
                title: "re-use the last custom reason that you typed to decline a flag"
             };
          }
@@ -1213,6 +1227,7 @@ function initQuestionPage()
             flagItemHtml += `
             <div class="dismiss-flag-popup-buttons">
                 <button type="button" class="flag-dismiss-helpful s-btn s-btn__link s-btn__outlined" data-type="helpful" title="mark this pending flag as helpful">Helpful&hellip;</button>
+                &nbsp;|&nbsp;
                 <button type="button" class="flag-dismiss-decline s-btn s-btn__link s-btn__outlined s-btn__danger" data-type="decline" title="mark this pending flag as declined">Decline&hellip;</button>
             </div>`;
          }
