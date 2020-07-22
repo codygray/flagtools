@@ -169,8 +169,8 @@ ${makeFlagInfoStickyAndFloatAbovePost
       margin-left: -8px;
    }
 
-   .mod-tools.mod-tools-post h3,
-   .mod-tools.mod-tools-comment-header h3
+   .mod-tools.mod-tools-post > h3,
+   .mod-tools.mod-tools-comment-header > h3
    {
       color: var(--orange-900);
    }
@@ -192,20 +192,20 @@ ${makeFlagInfoStickyAndFloatAbovePost
       padding: 0;
    }
 
-   .mod-tools ul.flags li
+   .mod-tools ul.flags > li
    {
       list-style: none;
       margin: 10px 0 10px 10px;
    }
 
-   .mod-tools ul.flags li:before,
-   .mod-tools ul.flags li:after
+   .mod-tools ul.flags > li:before,
+   .mod-tools ul.flags > li:after
    {
       content: ' ';
       display: table;
    }
 
-   .mod-tools ul.flags li:after
+   .mod-tools ul.flags > li:after
    {
       clear: both;
    }
