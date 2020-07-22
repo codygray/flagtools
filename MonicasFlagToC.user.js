@@ -609,9 +609,9 @@ function initTools()
             },
             notdupe: {
                id: -2,
-               text: "If you disagree that your question is a duplicate, you should edit the question to clarify the difference and why those answers didn't solve your problem. See: https://meta.stackoverflow.com/q/252252",
-               prompt: "if you <b>disagree that your question is a duplicate</b>...",
-               title: "use when the flag is complaining to a moderator that the question was closed as a duplicate",
+               text: "If you disagree that a question is a duplicate, you should edit the question to clarify the difference and why those answers didn't solve the problem. See: https://meta.stackoverflow.com/q/252252",
+               prompt: "if you <b>disagree that a question is a duplicate</b>...",
+               title: "use when the flag is complaining to a moderator that the question was incorrectly closed as a duplicate",
             },
             badmigration: {
                id: -3,
