@@ -361,6 +361,15 @@ function initTools()
 {
    FlagFilter.tools = $.extend({}, FlagFilter.tools,
    {
+      reopenQuestion: function(postId)
+      {
+         if (typeof postId === 'undefined' || postId === null) return;
+         return $.post('/flags/questions/' + postId + '/reopen/add',
+            {
+               fkey: StackExchange.options.user.fkey
+            });
+      },
+
       // closeReasonId: 'SiteSpecific', 'NeedMoreFocus', 'NeedsDetailsOrClarity', 'OpinionBased', 'Duplicate'
       // if closeReasonId is 'SiteSpecific', offtopicReasonId : 11-norepro, 13-nomcve, 16-toolrec, 3-custom/other, 2-migrate
       closeQuestion: function(postId,
@@ -516,7 +525,7 @@ function initTools()
       disputeSpamAbusiveFlags: function(postId)
       {
          $.post("/admin/posts/" + postId + "/clear-offensive-spam-flags", {fkey: StackExchange.options.user.fkey})
-            .then(() => location.reload(),
+            .then(() => location.reload(true),
                      function(err) { console.log(err); alert("something went wrong") });
       },
 
@@ -1006,9 +1015,24 @@ function initQuestionPage()
                      const questionId = location.pathname.match(/\/questions\/(\d+)/)[1];
                      if (confirm(`This question will be immediately migrated to ${site.name} (${site.baseHostAddress}).\n\nContinue with the migration?`))
                      {
-                        FlagFilter.tools.migrateTo(questionId, site.baseHostAddress)
-                           .done(function() { location.reload() })
-                           .fail(function() { alert("something went wrong") });
+                        const retryCounter = 0;
+                        while (retryCounter < 1)
+                        {
+                           FlagFilter.tools.migrateTo(questionId, site.baseHostAddress)
+                              .fail(function() { alert("Something went wrong: could not perform migration."); })
+                              .done(function(xhr)
+                                    {
+                                       if (xhr.Success === "false" && xhr.Message === "This question is already closed - please refresh the page")
+                                       {
+                                          ++retryCounter;
+                                          FlagFilter.tools.reopenQuestion(questionId);
+                                       }
+                                       else
+                                       {
+                                          location.reload(true);
+                                       }
+                                    });
+                        }
                      }
                   })
                   .appendTo(modActions);
