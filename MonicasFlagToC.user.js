@@ -55,6 +55,12 @@ function initStyles()
 {
    let flagStyles = document.createElement("style");
    flagStyles.textContent = `
+   .question-page #answers .answer.deleted-answer
+   {
+      /* Same as .deleted-answer { border-top } */
+      border-bottom: 1px solid var(--red-100);
+   }
+
    #postflag-bar
    {
       display: none;
