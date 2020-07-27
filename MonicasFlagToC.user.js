@@ -6,7 +6,6 @@
 // @version       0.94
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
-// @include       http*://dev.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
 // @include       http*://*.askubuntu.com/questions/*
 // @include       http*://superuser.com/questions/*
@@ -149,12 +148,22 @@ ${makeFlagInfoStickyAndFloatAbovePost
    }
 
    .mod-tools.mod-tools-post,
+   .mod-tools.mod-tools-comment-header
+   {
+      border: 1px solid var(--orange-100);
+   }
+   .mod-tools.mod-tools-post,
    .mod-tools.mod-tools-comment-header,
    .mod-tools .mod-tools-comment > :first-child
    {
       border-left: 8px solid var(--orange-200);
    }
 
+   .mod-tools.mod-tools-post.active-flag,
+   .mod-tools.mod-tools-comment-header.active-flag
+   {
+      border: 1px solid var(--orange-100);
+   }
    .mod-tools.mod-tools-post.active-flag,
    .mod-tools.mod-tools-comment-header.active-flag,
    .mod-tools .mod-tools-comment.active-flag > :first-child
@@ -173,6 +182,10 @@ ${makeFlagInfoStickyAndFloatAbovePost
    .mod-tools.mod-tools-comment-header > h3
    {
       color: var(--orange-900);
+   }
+   .mod-tools.mod-tools-comment-header > h3
+   {
+      margin: 0;
    }
 
    .mod-tools.mod-tools-post .dismiss-flag-popup-buttons
@@ -672,7 +685,7 @@ function initTools()
             reasons["lastEntered"] = {
                id: 0,
                text: lastDecline,
-               prompt: `<b>last reason:</b> ${lastDecline}`,
+               prompt: `<b>last-used reason:</b> ${lastDecline}`,
                title: "re-use the last custom reason that you typed to decline a flag"
             };
          }
@@ -1146,7 +1159,7 @@ function initQuestionPage()
       const postContainer = commentContainer.closest(".question, .answer");
       const tools = postContainer.find(".mod-tools-post");
       const postFlags = flagCache[postId];
-      let commentModToolsContainer = commentContainer.find(".mod-tools-comment");
+      let commentModToolsContainer = commentContainer.find(".mod-tools-comment-header");
 
       if (!postFlags || ((!postFlags.commentFlags.length || !commentContainer.length) && !postFlags.assumeInactiveCommentFlagCount) )
       {
