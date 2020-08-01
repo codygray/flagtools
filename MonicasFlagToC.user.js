@@ -19,6 +19,10 @@
 // @exclude       http*://chat.*.com/*
 // ==/UserScript==
 
+// Registered on Stack Apps in order to obtain an API key.
+// Client ID is 18434 (https://stackapps.com/apps/oauth/view/18434)
+const API_KEY = 'YVKZM9)1ozBP8NH)hlPj8Q((';
+
 // this serves only to avoid embarassing mistakes caused by inadvertently loading this script onto a page that isn't a Stack Exchange page
 let isSEsite = false;
 for (const s of document.querySelectorAll("script"))
@@ -811,7 +815,7 @@ function initTools()
                return ret;
             }
 
-            return $.get('https://api.stackexchange.com/2.2/sites?pagesize=500')
+            return $.get(`https://api.stackexchange.com/2.2/sites?key=${API_KEY}&pagesize=500`)
                .then(function(data)
                {
                   let sites = [];
