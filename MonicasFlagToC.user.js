@@ -23,6 +23,8 @@
 // Client ID is 18434 (https://stackapps.com/apps/oauth/view/18434)
 const API_KEY = 'YVKZM9)1ozBP8NH)hlPj8Q((';
 
+const makeFlagInfoStickyAndFloatAbovePost = true;
+
 // this serves only to avoid embarassing mistakes caused by inadvertently loading this script onto a page that isn't a Stack Exchange page
 let isSEsite = false;
 for (const s of document.querySelectorAll("script"))
@@ -36,18 +38,8 @@ if (!isSEsite || typeof StackExchange === "undefined" || !StackExchange.options.
    return;
 }
 
-function with_jquery(f)
+$(function()
 {
-   const script = document.createElement("script");
-   script.type = "text/javascript";
-   script.textContent = "if (window.jQuery) (" + f.toString() + ")(window.jQuery)" + "\n\n//# sourceURL=" + encodeURI(GM_info.script.namespace.replace(/\/?$/, "/")) + encodeURIComponent(GM_info.script.name).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16)); // make this easier to debug;
-   document.body.appendChild(script);
-}
-
-with_jquery(function()
-{
-   const makeFlagInfoStickyAndFloatAbovePost = true;
-
    window.FlagFilter = window.FlagFilter || {};
 
    initStyles();
