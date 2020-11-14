@@ -258,7 +258,12 @@
 
       .mod-tools .dismiss-flags-popup form
       {
-         display: flex;
+         display: grid;
+      }
+
+      .mod-tools .dismiss-flags-popup button
+      {
+         margin: 3px 0;
       }
 
       .mod-tools .dismiss-flags-popup form>button.g-col
