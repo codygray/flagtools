@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.95
+// @version       0.96
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -24,6 +24,7 @@
    'use strict';
 
    const makeFlagInfoStickyAndFloatAbovePost = true;
+   const haveStickyTopbar                    = true;
 
    // Registered on Stack Apps in order to obtain an API key.
    // Client ID is 18434 (https://stackapps.com/apps/oauth/view/18434)
@@ -130,8 +131,17 @@
    ${makeFlagInfoStickyAndFloatAbovePost
    ?
    `     position: sticky;
-         top: 0;
          z-index: 1050;
+   ${haveStickyTopbar
+   ?
+   `
+         top: 50px;
+   `
+   :
+   `
+         top: 0;
+   `
+   }
    `
    :
          ''
