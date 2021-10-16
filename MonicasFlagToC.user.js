@@ -1401,13 +1401,13 @@
          {
             const post        = $(".answer[data-answerid='"+postId+"'],.question[data-questionid='"+postId+"']");
             const userLink    = post.find(".user-details[itemprop='author'] a[href^='/users/']:first,.user-details #history-"+postId);
-            let   url         = (postType == 'question' ? '#question' : "#" + postId);
             let   postType    = post.is(".answer") ? "answer" : "question";
+            let   url         = (postType == 'question' ? '#question' : "#" + postId);
             let   attribution = (userLink.is('#history-'+postId) ? '(wiki)' : "by " + userLink.text());
             if (!post.length) // handle flags spanning multiple pages of answers
             {
-               url         = ('/a/' + postId);
                postType    = "answer";
+               url         = ('/a/' + postId);
                attribution = "on another page";
             }
             const flagSummaries = SummarizeFlags(flagCache[postId], 3).map(function(summary)
