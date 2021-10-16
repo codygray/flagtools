@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.101
+// @version       0.102
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -1327,7 +1327,7 @@
          {
             $("<div class='flag-outcome'><i></i></div>")
                .find("i").text(flag.result).end()
-               .append(flag.resultUser ? `<span> &ndash; </span><a href="/users/${flag.resultUser.userId}" class="flag-creation-user comment-user">${flag.resultUser.name} <span class="mod-flair " title="Moderator">♦</span></a>` : '<span> &ndash; </span>')
+               .append(flag.resultUser ? `<span> &ndash; </span><a href="/users/${flag.resultUser.userId}" class="flag-creation-user comment-user">${flag.resultUser.name}</a>${flag.resultUser.isMod ? '<span class="mod-flair " title="Moderator">♦</span>' : ''}` : '<span> &ndash; </span>')
                .append(`<span class="flag-creation-date comment-date" dir="ltr"> <span title="${FlagFilter.tools.formatISODate(flag.resultDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(flag.resultDate)}</span></span>`)
                .appendTo(flagItem);
          }
@@ -1527,7 +1527,8 @@
                const flagger     = row.querySelector(":scope>td>span>a[href^=\"/users/\"]");
                const description = row.querySelector(":scope>td.event-comment>span");
                const deleted     = deleteRow && deleteRow.querySelector(":scope>td.creation-date span.relativetime");
-               const mod         = deleteRow && deleteRow.querySelector(":scope>td>span>a[href^=\"/users/\"]");
+               const handler     = deleteRow && deleteRow.querySelector(":scope>td>span>a[href^=\"/users/\"]");
+               const isMod       = deleteRow && deleteRow.querySelector(":scope>td>span>a[href^=\"/users/\"]+span[title='Moderator']");
                const result      = deleteRow && deleteRow.querySelector(":scope>td.event-comment>span");
 
                if (!created || !eventType || !flagType)  { continue; }
@@ -1541,8 +1542,9 @@
                   resultDate:  deleted ? FlagFilter.tools.parseISODate(deleted.title) : null,
                   resultUser:
                   {
-                     userId: mod ? +mod.href.match(/\/users\/([-\d]+)/)[1] : -1,
-                     name:  (mod && mod.textContent.trim()) || ""
+                     userId: handler ? +handler.href.match(/\/users\/([-\d]+)/)[1] : -1,
+                     name:  (handler && handler.textContent.trim()) || "",
+                     isMod: isMod
                   },
                   flaggers: [
                   {
