@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.98
+// @version       0.99
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -148,37 +148,32 @@
    }
       }
 
-      .mod-tools.mod-tools-post
+      .mod-tools.mod-tools-comment-header
+      {
+         padding: 12px;
+         margin-top: -1px;
+      }
+
+      .mod-tools.mod-tools-post,
+      .mod-tools.mod-tools-comment-header
       {
          border: 1px solid var(--orange-200);
       }
-      .mod-tools.mod-tools-post.active-flag
+      .mod-tools.mod-tools-post.active-flag,
+      .mod-tools.mod-tools-comment-header.active-flag
       {
          border: 1px solid var(--orange-400);
          box-shadow: var(--bs-md),
                      0 0 6px var(--orange-400) !important;
       }
 
-      .mod-tools.mod-tools-comment-header
-      {
-         padding: 12px;
-         border-bottom: 1px solid var(--black-075);
-         border: 1px solid var(--orange-100);
-      }
-      .mod-tools.mod-tools-comment-header,
       .mod-tools .mod-tools-comment > :first-child
       {
          border-left: 8px solid var(--orange-200);
       }
-
-      .mod-tools.mod-tools-comment-header.active-flag
-      {
-         border: 1px solid var(--orange-100);
-      }
-      .mod-tools.mod-tools-comment-header.active-flag,
       .mod-tools .mod-tools-comment.active-flag > :first-child
       {
-         border-left: 8px solid var(--orange-500);
+         border-left: 8px solid var(--orange-400);
       }
 
       .mod-tools.mod-tools-comment-header,
