@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.99
+// @version       0.100
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -866,13 +866,8 @@
 
    function initQuestionPage()
    {
-      let flagCache = {};
+      let flagCache   = {};
       let waffleFlags = GetFlagInfoFromWaffleBar();
-      if (!waffleFlags.length)
-      {
-         waffleFlags = GetFlagInfoFromNewFlagBar();
-      }
-
       for (const fp of waffleFlags)
       {
          flagCache[fp.postId] = fp;
@@ -893,17 +888,17 @@
             ev.preventDefault();
 
             const dismissLink = $(this);
-            const post = dismissLink.parents(".question, .answer");
-            const postId = post.data("questionid") || post.data("answerid");
-            const commentId = dismissLink.parents(".comment").attr("id").match(/comment-(\d+)/)[1];
-            let flagInfo = dismissLink.parents(".flag-info");
+            const post        = dismissLink.parents(".question, .answer");
+            const postId      = post.data("questionid") || post.data("answerid");
+            const commentId   = dismissLink.parents(".comment").attr("id").match(/comment-(\d+)/)[1];
+            let   flagInfo    = dismissLink.parents(".flag-info");
             if (!flagInfo.length)
             {
                flagInfo = dismissLink.parents(".comment").find(".flag-info");
             }
-            const flagIds = flagInfo.data("flag-ids");
+            const flagIds      = flagInfo.data("flag-ids");
             const flagListItem = flagInfo.parent();
-            if (!commentId || !flagListItem.length) return;
+            if (!commentId || !flagListItem.length)  { return; }
 
             FlagFilter.tools.dismissAllCommentFlags(commentId, flagIds)
                .done(function() { flagListItem.hide('medium'); dismissLink.hide(); /* annoying - don't do this RefreshFlagsForPost(postId); */  });
@@ -912,13 +907,11 @@
          // Wire up the "dismiss all" buttons.
          .on("click", ".mod-tools .flag-dismiss-all-helpful, .mod-tools .flag-dismiss-all-decline", function()
          {
-            const btn = $(this);
-            const post = btn.parents(".question, .answer");
+            const btn    = $(this);
+            const post   = btn.parents(".question, .answer");
             const postId = post.data("questionid") || post.data("answerid");
-
             const choice = btn.is(".flag-dismiss-all-helpful") ? FlagFilter.tools.flagHelpfulUI(btn.parent())
                                                                : FlagFilter.tools.flagDeclineUI(btn.parent());
-
             choice.then(function(dismissal)
             {
                FlagFilter.tools.dismissAllFlags(postId, dismissal.helpful, dismissal.declineId, dismissal.comment)
@@ -933,9 +926,9 @@
          // historical flag expansion
          .on("click", "a.show-all-flags", function()
          {
-            const holder = $(this).parent();
-            const postId = $(this).data('postid');
-            const link = holder.find('a.show-all-flags');
+            const holder  = $(this).parent();
+            const postId  = $(this).data('postid');
+            const link    = holder.find('a.show-all-flags');
             const spinner = $("<span> loading <img src='//sstatic.net/img/progress-dots.gif'></span>");
             spinner.insertAfter(link.hide());
 
@@ -946,8 +939,7 @@
                });
          })
 
-      $(document)
-         .ajaxSuccess(function(event, XMLHttpRequest, ajaxOptions)
+      $(document).ajaxSuccess(function(event, XMLHttpRequest, ajaxOptions)
          {
             $('#content .js-comment-delete span.hover-only-label').addClass("delete-tag").text("");
 
@@ -984,19 +976,17 @@
 
       function initFlags()
       {
-         const posts = $(".question, .answer");
-
-         posts.each(function()
+         $(".question, .answer").each(function()
          {
-            const postContainer = $(this),
-               postId = postContainer.data('questionid') || postContainer.data('answerid'),
-               issues = postContainer.find(".js-post-issue"),
-               flagsLink = issues.filter("a[href='/admin/posts/" + postId + "/show-flags']"),
-               commentsLink = issues.filter("a[href='/admin/posts/" + postId + "/comments']"),
-               flags = flagCache[postId],
-               totalFlags = flagsLink.length ? +flagsLink.text().match(/\d+/)[0] : 0;
+            const postContainer = $(this);
+            const postId        = postContainer.data('questionid') || postContainer.data('answerid');
+            const issues        = postContainer.find(".js-post-issue");
+            const flagsLink     = issues.filter("a[href='/admin/posts/" + postId + "/show-flags']");
+            const commentsLink  = issues.filter("a[href='/admin/posts/" + postId + "/comments']");
+            const flags         = flagCache[postId];
+            const totalFlags    = flagsLink.length ? +flagsLink.text().match(/\d+/)[0] : 0;
 
-            if (!flagsLink.length) return;
+            if (!flagsLink.length)  { return; }
 
             // NOTE: Flags are referred to as "inactive" here, not "resolved", since review flags
             //       that are less than 1 hour old aren't shown to mods by default, so they won't
@@ -1032,27 +1022,22 @@
 
       function ShowFlags(postContainer, postFlags, forceCommentVisibility)
       {
-         const tools = postContainer.find(".mod-tools-post");
-         const modActions = tools.find(".mod-actions")
-            .empty();
-
+         const tools         = postContainer.find(".mod-tools-post");
+         const modActions    = tools.find(".mod-actions")
+                                    .empty();
          const flagContainer = tools.find("ul.flags")
-            .empty();
-         let activeCount = 0;
-         let inactiveCount = 0;
+                                    .empty();
+         let activeCount         = 0;
+         let inactiveCount       = 0;
          let nonDisputedRedCount = 0;
          for (const flag of postFlags.flags)
          {
-            if (flag.active)
-            {
-               activeCount += flag.flaggers.length;
-            }
-            else
-            {
-               inactiveCount += flag.flaggers.length;
-            }
+            if (flag.active)  activeCount   += flag.flaggers.length;
+            else              inactiveCount += flag.flaggers.length;
 
-            if ((flag.description.toLowerCase() === "spam" || flag.description.toLowerCase() === "rude or abusive") &&
+            if (((flag.description.toLowerCase() === "spam") ||
+                 (flag.description.toLowerCase() === "rude or abusive"))
+                &&
                 (flag.result.toLowerCase() !== "disputed"))
             {
                ++nonDisputedRedCount;
@@ -1061,15 +1046,15 @@
             FlagFilter.tools.predictMigrationDest(flag.description)
                .done(function(site)
                {
-                  if (modActions.find(".migration-link").length) return;
-                  if (!site.name) return;
+                  if (modActions.find(".migration-link").length)  { return; }
+                  if (!site.name)                                 { return; }
                   $(`<button type='button' class='migration-link s-btn s-btn__muted s-btn__outlined' title='migrate this question to a site chosen by the magic 8-ball'>Migrate to ${site.name}</button>`)
                      .click(function()
                      {
                         const questionId = location.pathname.match(/\/questions\/(\d+)/)[1];
                         if (confirm(`This question will be immediately migrated to ${site.name} (${site.baseHostAddress}).\n\nContinue with the migration?`))
                         {
-                           const retryCounter = 0;
+                           let retryCounter = 0;
                            while (retryCounter < 2)
                            {
                               FlagFilter.tools.migrateTo(questionId, site.baseHostAddress)
@@ -1118,8 +1103,9 @@
                                `);
          }
 
-         const totalFlags = tools.data("totalflags");
+         const totalFlags  = tools.data("totalflags");
          const commentFlags = postFlags.commentFlags.reduce((acc, f) => acc + f.flaggers.length, 0);
+
          // this... really just hacks around incomplete information in the waffle bar
          postFlags.assumeInactiveCommentFlagCount = totalFlags - (activeCount+inactiveCount) - commentFlags;
 
@@ -1139,14 +1125,16 @@
                  .find("h3.flag-summary").html(`*<a class='show-all-flags' data-postid='${postFlags.postId}' title='Not sure about these flags; click to load accurate information for ${postFlags.assumeInactiveCommentFlagCount} undefined flags'> click to load full flag info</a>`);
          }
          else
+         {
             tools.hide();
+         }
 
          if (postFlags.commentFlags.length && forceCommentVisibility)
          {
-            const issues = postContainer.find(".js-post-issue"),
-               moreCommentsLink = $("#comments-link-" + postFlags.postId + " a.js-show-link:last:visible"),
-               deletedCommentsLink = issues.filter("a[href='/admin/posts/" + postFlags.postId + "/comments']"),
-               inactiveCommentFlags = !postFlags.commentFlags.every(f => f.active);
+            const issues               = postContainer.find(".js-post-issue");
+            const moreCommentsLink     = $("#comments-link-" + postFlags.postId + " a.js-show-link:last:visible");
+            const deletedCommentsLink  = issues.filter("a[href='/admin/posts/" + postFlags.postId + "/comments']");
+            const inactiveCommentFlags = !postFlags.commentFlags.every(f => f.active);
 
             // load comments to trigger flag display
             if (inactiveCommentFlags && deletedCommentsLink.length)
@@ -1223,9 +1211,9 @@
             .find(".comment").removeClass("active-flag").end()
             .find(".comment-text .flags").remove();
 
-         let activeCount = 0;
+         let activeCount   = 0;
          let inactiveCount = 0;
-         let flagsShown = 0;
+         let flagsShown    = 0;
          for (const flag of postFlags.commentFlags)
          {
             const comment = commentContainer.find("#comment-" + flag.commentId);
@@ -1249,10 +1237,10 @@
                inactiveCount += flag.flaggers.length;
             }
 
-            if (!comment.length) continue;
+            if (!comment.length)  { continue; }
 
             flagsShown += flag.flaggers.length;
-            const flagItem = RenderFlagItem(true, flag);
+            const flagItem    = RenderFlagItem(true, flag);
             const flagDismiss = flagItem.find(".flag-dismiss-comment").remove();
             container.append(flagItem);
             if (!comment.find(".flag-dismiss-comment").length)
@@ -1267,7 +1255,8 @@
          commentModToolsContainer.toggleClass("active-flag", !!activeCount);
 
          const totalFlags = tools.data("totalflags");
-         let flagSummary = [];
+
+         let flagSummary  = [];
          if (activeCount > 0)
          {
             flagSummary.push(`<a class='show-all-flags' data-postid='${postFlags.postId}' title='load complete flag details'>${activeCount} active comment flags</a>`);
@@ -1285,7 +1274,7 @@
          }
 
          commentContainer.find("h3.comment-flag-summary")
-            .html(flagSummary.join("; "));
+                         .html(flagSummary.join("; "));
       }
 
       function RenderFlagItem(isComment, flag, reviews)
@@ -1325,8 +1314,8 @@
          if (flag.result)
          {
             $("<div class='flag-outcome'><i></i></div>")
-                  .find("i").text(flag.result).end()
-               .append(flag.resultUser ? `<span> &ndash; </span><a href="/users/${flag.resultUser.userId}" class="flag-creation-user comment-user">${flag.resultUser.name}</a>` : '<span> &ndash; </span>')
+               .find("i").text(flag.result).end()
+               .append(flag.resultUser ? `<span> &ndash; </span><a href="/users/${flag.resultUser.userId}" class="flag-creation-user comment-user">${flag.resultUser.name} <span class="mod-flair " title="Moderator">♦</span></a>` : '<span> &ndash; </span>')
                .append(`<span class="flag-creation-date comment-date" dir="ltr"> <span title="${FlagFilter.tools.formatISODate(flag.resultDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(flag.resultDate)}</span></span>`)
                .appendTo(flagItem);
          }
@@ -1351,7 +1340,7 @@
             let flaggerNames = [];
             for (const user of flag.flaggers)
             {
-               if (!user) continue;
+               if (!user)  { continue; }
 
                const userLink = user.name
                   ? $(`<a href="/users/${user.userId}" class="flag-creation-user comment-user"></a>`)
@@ -1365,7 +1354,6 @@
 
                flaggerNames.push( userLink + ' ' + flagDate );
             }
-
             flagItem.find(".flaggers").append(flaggerNames.join(", "));
          }
 
@@ -1374,12 +1362,12 @@
             // Wire up the flag dismissal buttons.
             flagItem.on("click", ".flag-dismiss-helpful, .flag-dismiss-decline", function()
             {
-               const btn = $(this);
-               const post = btn.parents(".question, .answer");
-               const postId = post.data("questionid") || post.data("answerid");
+               const btn          = $(this);
+               const post         = btn.parents(".question, .answer");
+               const postId       = post.data("questionid") || post.data("answerid");
                const flagListItem = btn.parents("li");
-               const flagIds = flagListItem.find(".flag-info").data("flag-ids");
-               if (!postId || !flagListItem.length || !flagIds) return;
+               const flagIds      = flagListItem.find(".flag-info").data("flag-ids");
+               if (!postId || !flagListItem.length || !flagIds)  { return; }
 
                // Remove old, just in case.
                flagListItem.parent().find(".dismiss-flag-popup").remove();
@@ -1387,7 +1375,7 @@
                // Display new.
                const choice = btn.is(".flag-dismiss-helpful") ? FlagFilter.tools.flagHelpfulUI(btn.parent())
                                                               : FlagFilter.tools.flagDeclineUI(btn.parent(), flag);
-               choice .then(function(dismissal)
+               choice.then(function(dismissal)
                {
                   FlagFilter.tools.dismissFlag(postId, flagIds, dismissal.helpful, dismissal.declineId, dismissal.comment)
                      .done(function(){ flagListItem.hide('medium'); RefreshFlagsForPost(postId); });
@@ -1401,7 +1389,7 @@
       function IsReviewFlag(flag)
       {
          return flag.active &&
-                (flag.description.toLowerCase() === "not an answer" ||
+                (flag.description.toLowerCase() === "not an answer"    ||
                  flag.description.toLowerCase() === "very low quality" ||
                  /Low answer quality score/.test(flag.description));
       }
@@ -1411,15 +1399,15 @@
          let flagToC = $("<ul class='flagToC'>");
          for (const postId in flagCache)
          {
-            let post = $(".answer[data-answerid='"+postId+"'],.question[data-questionid='"+postId+"']"),
-               postType = post.is(".answer") ? "answer" : "question",
-               userLink = post.find(".user-details[itemprop='author'] a[href^='/users/']:first,.user-details #history-"+postId),
-               attribution = (userLink.is('#history-'+postId) ? '(wiki)' : "by " + userLink.text()),
-               url = (postType == 'question' ? '#question' : "#" + postId);
+            const post        = $(".answer[data-answerid='"+postId+"'],.question[data-questionid='"+postId+"']");
+            const userLink    = post.find(".user-details[itemprop='author'] a[href^='/users/']:first,.user-details #history-"+postId);
+            let   url         = (postType == 'question' ? '#question' : "#" + postId);
+            let   postType    = post.is(".answer") ? "answer" : "question";
+            let   attribution = (userLink.is('#history-'+postId) ? '(wiki)' : "by " + userLink.text());
             if (!post.length) // handle flags spanning multiple pages of answers
             {
-               url = ('/a/' + postId);
-               postType = "answer";
+               url         = ('/a/' + postId);
+               postType    = "answer";
                attribution = "on another page";
             }
             const flagSummaries = SummarizeFlags(flagCache[postId], 3).map(function(summary)
@@ -1463,7 +1451,7 @@
          {
             const flags = flaggedPost.flags.concat(Object.values(flaggedPost.commentFlags.reduce(function(acc, cf)
                {
-                  const key = cf.description + cf.active;
+                  const key       = cf.description + cf.active;
                   const composite = acc[key] || {commentId: -1, description: cf.description, flaggers: [], active: cf.active};
                   composite.flaggers.push.apply(composite.flaggers, cf.flaggers.length ? cf.flaggers : ["unknown"]);
                   acc[key] = composite;
@@ -1497,18 +1485,19 @@
          function ParseTimeline(dom)
          {
             const ret = {
-               postId: postId,
-               flags: [],
+               postId:       postId,
+               flags:        [],
                commentFlags: [],
-               reviews: []
+               reviews:      []
             };
 
-            const flagList = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr[data-eventtype=flag]"));
+            const flagList           = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr[data-eventtype=flag]"));
             const flaggedCommentList = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr[data-eventtype=comment] td.event-comment .js-toggle-comment-flags[data-flag-ids]"));
-            const reviewList = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr[data-eventtype=review]"));
-            const commentMap = flaggedCommentList.reduce( function(acc, fc)
+            const reviewList         = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr[data-eventtype=review]"));
+            const deletionList       = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr.deleted-event[data-eventid]+tr"));
+            const commentMap         = flaggedCommentList.reduce(function(acc, fc)
                {
-                  const flagIds = fc.dataset.flagIds.split(';');
+                  const flagIds   = fc.dataset.flagIds.split(';');
                   const parentRow = fc.closest("tr[data-eventtype=comment]");
                   for (const id of flagIds)
                   {
@@ -1516,38 +1505,37 @@
                   }
                   return acc;
                }, {});
-            const deletionList = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr.deleted-event[data-eventid]+tr"));
             for (const row of flagList)
             {
-               const id = +row.dataset.eventid;
-               const deleteRow = deletionList.find( el => el.dataset.eventid==id );
-               const created = row.querySelector(":scope>td.creation-date span.relativetime");
-               const eventType = row.querySelector(":scope>td.event-type>span.event-type");
-               const flagType = row.querySelector(":scope>td.event-type+td>span");
-               const flagger = row.querySelector(":scope>td>span.js-created-by>a");
+               const id          = +row.dataset.eventid;
+               const deleteRow   = deletionList.find( el => el.dataset.eventid==id );
+               const created     = row.querySelector(":scope>td.creation-date span.relativetime");
+               const eventType   = row.querySelector(":scope>td.event-type>span.event-type");
+               const flagType    = row.querySelector(":scope>td.event-type+td>span");
+               const flagger     = row.querySelector(":scope>td>span>a[href^=\"/users/\"]");
                const description = row.querySelector(":scope>td.event-comment>span");
-               const deleted = deleteRow && deleteRow.querySelector(":scope>td.creation-date span.relativetime");
-               const mod = deleteRow && deleteRow.querySelector(":scope>td>span.js-created-by>a");
-               const result = deleteRow && deleteRow.querySelector(":scope>td.event-comment>span");
+               const deleted     = deleteRow && deleteRow.querySelector(":scope>td.creation-date span.relativetime");
+               const mod         = deleteRow && deleteRow.querySelector(":scope>td>span>a[href^=\"/users/\"]");
+               const result      = deleteRow && deleteRow.querySelector(":scope>td.event-comment>span");
 
-               if (!created || !eventType || !flagType) continue;
+               if (!created || !eventType || !flagType)  { continue; }
 
                const flag =
                {
-                  flagIds: [id],
+                  flagIds:     [id],
                   description: (description && description.innerHTML.trim()) || (flagType && flagType.textContent.trim()) || "",
-                  active: !deleted,
-                  result: (result && result.textContent.trim()) || "",
-                  resultDate: deleted ? FlagFilter.tools.parseISODate(deleted.title) : null,
+                  active:      !deleted,
+                  result:      (result && result.textContent.trim()) || "",
+                  resultDate:  deleted ? FlagFilter.tools.parseISODate(deleted.title) : null,
                   resultUser:
                   {
                      userId: mod ? +mod.href.match(/\/users\/([-\d]+)/)[1] : -1,
-                     name: (mod && mod.textContent.trim()) || ""
+                     name:  (mod && mod.textContent.trim()) || ""
                   },
                   flaggers: [
                   {
                      userId: flagger ? +flagger.href.match(/\/users\/([-\d]+)/)[1] : -1,
-                     name: (flagger && flagger.textContent.trim()) || "",
+                     name:  (flagger && flagger.textContent.trim()) || "",
                      flagCreationDate: FlagFilter.tools.parseISODate(created.title)
                   }]
                };
@@ -1570,21 +1558,21 @@
 
             ret.reviews = reviewList.map(function(row)
             {
-               const id = +row.dataset.eventid;
-               const deleteRow = deletionList.find( el => el.dataset.eventid==id );
-               const created = row.querySelector(":scope>td.creation-date span.relativetime");
+               const id         = +row.dataset.eventid;
+               const deleteRow  = deletionList.find( el => el.dataset.eventid==id );
+               const created    = row.querySelector(":scope>td.creation-date span.relativetime");
                const reviewType = row.querySelector(":scope>td.event-type+td>span>a");
-               const completed = deleteRow && deleteRow.querySelector(":scope>td.creation-date span.relativetime");
+               const completed  = deleteRow && deleteRow.querySelector(":scope>td.creation-date span.relativetime");
                const resultType = deleteRow && deleteRow.querySelector(":scope>td.event-type+td>span");
-               const result = deleteRow && deleteRow.querySelector(":scope>td.event-comment>span");
+               const result     = deleteRow && deleteRow.querySelector(":scope>td.event-comment>span");
 
                return {
-                  id: id,
+                  id:           id,
                   creationDate: FlagFilter.tools.parseISODate(created.title),
-                  type: (reviewType && reviewType.textContent.trim()) || "",
-                  url: reviewType && reviewType.href,
-                  resultDate: completed ? FlagFilter.tools.parseISODate(completed.title) : null,
-                  result: (result && result.textContent.trim()) || (resultType && resultType.textContent.trim())
+                  type:         (reviewType && reviewType.textContent.trim()) || "",
+                  url:          reviewType && reviewType.href,
+                  resultDate:   completed ? FlagFilter.tools.parseISODate(completed.title) : null,
+                  result:       (result && result.textContent.trim()) || (resultType && resultType.textContent.trim())
                };
             });
 
@@ -1596,14 +1584,14 @@
                   {
                      const key = [f.commentId, f.description, f.active, f.resultDate, f.resultUser && f.resultUser.userId].join(":");
                      const composite = acc[key] || {
-                        commentId: f.commentId,
+                        commentId:   f.commentId,
                         description: f.description,
-                        active: f.active,
-                        result: f.result,
-                        resultDate: f.resultDate,
-                        resultUser: f.resultUser,
-                        flaggers: [],
-                        flagIds: [] };
+                        active:      f.active,
+                        result:      f.result,
+                        resultDate:  f.resultDate,
+                        resultUser:  f.resultUser,
+                        flaggers:    [],
+                        flagIds:     [] };
                      composite.flaggers.push.apply(composite.flaggers, f.flaggers.map(u => Object.assign({}, u)));
                      composite.flagIds.push.apply(composite.flagIds, f.flagIds);
                      acc[key] = composite;
@@ -1618,120 +1606,36 @@
          }
       }
 
-      // this should be considered incomplete AT BEST
-      // The truth is, the flag bar intentionally omits some information (full list of flaggers, comment flaggers)
-      // and is incorrect in regard to some other information (showing active flags as inactive in cases where a flag has been handled)
       function GetFlagInfoFromWaffleBar()
-      {
-         return $(".flagged-post-row")
-            .map(function()
-            {
-               const fp = $(this);
-               const ret = {
-                  postId: fp.data("post-id"),
-
-                  flags: fp.find(".flag-row")
-                     .map(function()
-                     {
-                        const flag = $(this);
-                        let ids = flag.data("flag-ids");
-                        ids = ids.split ? ids.split(';')
-                           .map(id => +id) : [ids];
-                        return {
-                           flagIds: ids,
-                           description: $.trim(flag.find(".revision-comment")
-                              .html()),
-                           active: flag.find(".active-flag")
-                              .length > 0,
-                           flaggers: flag.find(">td>a[href*='/users/']")
-                              .map(function()
-                              {
-                                 const userId = this.href.match(/\/users\/([-\d]+)/);
-                                 return {
-                                    userId: userId && userId.length > 0 ? +userId[1] : null,
-                                    name: this.textContent,
-                                    flagCreationDate: FlagFilter.tools.parseISODate($(this)
-                                       .nextAll(".relativetime:first")
-                                       .attr('title'), new Date(0))
-                                 };
-                              })
-                              .toArray()
-                        };
-                     })
-                     .toArray(),
-
-                  commentFlags: fp.find("table.comments tr .flagcount")
-                     .map(function()
-                     {
-                        const flagText = $(this).next(".revision-comment");
-                        const flaggedComment = $(this).closest("tr");
-                        const commentId = flaggedComment.attr("class")
-                           .match(/comment-flagged-(\d+)/);
-                        const flaggers = flagText.nextUntil(".flagcount", "a[href*='/users/']");
-                        if (!commentId || commentId.length < 2) return;
-                        return {
-                           commentId: +commentId[1],
-                           active: true,
-                           description: $.trim(flagText.html()),
-                           flaggers: flaggers.length
-                              ? flaggers.map(function()
-                              {
-                                 const userId = this.href.match(/\/users\/([-\d]+)/);
-                                 return {
-                                    userId: userId && userId.length > 0 ? +userId[1] : null,
-                                    name: this.textContent,
-                                    flagCreationDate: FlagFilter.tools.parseISODate($(this)
-                                       .nextAll(".relativetime:first")
-                                       .attr('title'), new Date(0))
-                                 };
-                              }).toArray()
-                              : Array(+$(this).text()).fill({userId: null, name: "", flagCreationDate: new Date(0)})
-                        };
-                     })
-                     .toArray()
-               };
-               if (!ret.flags.some( f => f.active ) && !ret.commentFlags.some(f => f.active))
-               {
-                  ret.dirty = true;
-               }
-               return ret;
-            })
-            .toArray();
-      }
-
-      function GetFlagInfoFromNewFlagBar()
       {
          return $(".js-flagged-post")
             .map(function()
             {
-               const fp = $(this);
+               const fp  = $(this);
                const ret = {
                   postId: fp.data("post-id"),
-
-                  flags: fp.find(".js-post-flag-group")
+                  flags:  fp.find(".js-post-flag-group")
                      .map(function()
                      {
                         const flag = $(this);
-                        let ids = flag.data("flag-ids");
-                        ids = ids.split ? ids.split(';')
-                           .map(id => +id) : [ids];
                         const mess = flag.find(">div:first .js-flag-text");
-
-                        let foundUser = false;
-                        const tmp = $("<div>");
+                        let   ids  = flag.data("flag-ids")
+                        ids        = ids.split ? ids.split(';').map(id => +id)
+                                               : [ids];
+                        let   foundUser   = false;
+                        let   tmp         = $("<div>");
                         const description = tmp.append( mess.contents().filter( function() { foundUser = foundUser || $(this).has("a[href^='/users/']").length; return !foundUser; }).clone() ).html().replace(/\s+-\s+$/, '');
                         return {
-                           flagIds: ids,
+                           flagIds:     ids,
                            description: description,
-                           active: flag.find(".js-dismiss-flags")
-                              .length > 0,
-                           flaggers: mess.find(">span>a[href^='/users/']")
+                           active:      flag.find(".js-dismiss-flags").length > 0,
+                           flaggers:    mess.find(">span>a[href^='/users/']")
                               .map(function()
                               {
                                  const userId = this.href.match(/\/users\/([-\d]+)/);
                                  return {
-                                    userId: userId && userId.length > 0 ? +userId[1] : null,
-                                    name: this.textContent,
+                                    userId:           userId && userId.length > 0 ? +userId[1] : null,
+                                    name:             this.textContent,
                                     flagCreationDate: FlagFilter.tools.parseISODate($(this)
                                        .parent()
                                        .nextAll(".relativetime:first, span[title]").first()
@@ -1743,23 +1647,21 @@
                      })
                      .toArray(),
 
-
                   commentFlags: fp.find(".js-flagged-comment")
                      .map(function()
                      {
-                        const mess = $(".js-flag-text", this);
-                        let foundUser = false;
-                        const tmp = $("<div>");
+                        const mess        = $(".js-flag-text", this);
+                        let   foundUser   = false;
+                        let   tmp         = $("<div>");
                         const description = tmp.append( mess.contents().filter( function() { foundUser = foundUser || $(this).has("a[href^='/users/']").length; return !foundUser; }).clone() ).html().replace(/\s+-\s+$/, '');
-
-                        const commentId = $(".js-comment-link", this).attr("href").match(/#comment(\d+)_\d+/);
-                        const flaggers = mess.find(">span>a[href^='/users/']")
+                        const commentId   = $(".js-comment-link", this).attr("href").match(/#comment(\d+)_\d+/);
+                        const flaggers    = mess.find(">span>a[href^='/users/']")
                               .map(function()
                               {
                                  const userId = this.href.match(/\/users\/([-\d]+)/);
                                  return {
-                                    userId: userId && userId.length > 0 ? +userId[1] : null,
-                                    name: this.textContent,
+                                    userId:           userId && userId.length > 0 ? +userId[1] : null,
+                                    name:             this.textContent,
                                     flagCreationDate: FlagFilter.tools.parseISODate($(this)
                                        .parent()
                                        .nextAll(".relativetime:first, span[title]").first()
@@ -1768,12 +1670,12 @@
                               })
                               .toArray();
 
-                        if (!commentId || commentId.length < 2) return;
+                        if (!commentId || commentId.length < 2)  { return; }
                         return {
-                           commentId: +commentId[1],
-                           active: true,
+                           commentId:   +commentId[1],
+                           active:      true,
                            description: description,
-                           flaggers: flaggers
+                           flaggers:    flaggers
                         };
                      })
                      .toArray()
