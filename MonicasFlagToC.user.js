@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.97
+// @version       0.98
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -155,6 +155,8 @@
       .mod-tools.mod-tools-post.active-flag
       {
          border: 1px solid var(--orange-400);
+         box-shadow: var(--bs-md),
+                     0 0 6px var(--orange-400) !important;
       }
 
       .mod-tools.mod-tools-comment-header
@@ -189,11 +191,8 @@
       .mod-tools.mod-tools-post > h3,
       .mod-tools.mod-tools-comment-header > h3
       {
-         color: var(--orange-900);
-      }
-      .mod-tools.mod-tools-comment-header > h3
-      {
          margin: 0;
+         color: var(--orange-900);
       }
 
       .mod-tools.mod-tools-post .dismiss-flag-popup-buttons
