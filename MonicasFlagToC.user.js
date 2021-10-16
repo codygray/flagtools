@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.100
+// @version       0.101
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -1054,24 +1054,36 @@
                         const questionId = location.pathname.match(/\/questions\/(\d+)/)[1];
                         if (confirm(`This question will be immediately migrated to ${site.name} (${site.baseHostAddress}).\n\nContinue with the migration?`))
                         {
-                           let retryCounter = 0;
-                           while (retryCounter < 2)
+                           // Attempt to migrate the question.
+                           const doMigrate = (iRetry = 0) =>
                            {
+                              if (iRetry > 2)  { return; }
+
                               FlagFilter.tools.migrateTo(questionId, site.baseHostAddress)
-                                 .fail(function() { alert("Something went wrong: could not perform migration."); })
-                                 .done(function(xhr)
-                                       {
-                                          ++retryCounter;
-                                          if (xhr.Success === "false" && xhr.Message === "This question is already closed - please refresh the page")
-                                          {
-                                             FlagFilter.tools.reopenQuestion(questionId);
-                                          }
-                                          else
-                                          {
-                                             location.reload(true);
-                                          }
-                                       });
-                           }
+                                 .fail(() =>
+                                 {
+                                    alert("Failed to perform migration.");
+                                    doMigrate(++iRetry);
+                                 })
+                                 .done((xhr) =>
+                                 {
+                                    if ((xhr.Success === "false") &&
+                                        (xhr.Message === "This question is already closed - please refresh the page"))
+                                    {
+                                       return FlagFilter.tools.reopenQuestion(questionId)
+                                                 .fail(() =>
+                                                 {
+                                                    alert("Failed to reopen question (cannot migrate a closed question).");
+                                                 })
+                                                 .done(() =>
+                                                 {
+                                                    doMigrate(iRetry);
+                                                 });
+                                    }
+                                    location.reload();
+                                 });
+                           };
+                           doMigrate();
                         }
                      })
                      .appendTo(modActions);
