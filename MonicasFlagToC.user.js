@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.103
+// @version       0.104
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -25,6 +25,7 @@
 
    const makeFlagInfoStickyAndFloatAbovePost = true;
    const haveStickyTopbar                    = true;
+   const showTOCInWaffleBar                  = false;
 
    // Registered on Stack Apps in order to obtain an API key.
    // Client ID is 18434 (https://stackapps.com/apps/oauth/view/18434)
@@ -394,6 +395,8 @@
             width: 54px;
          }
       }
+
+      ${!showTOCInWaffleBar ? `.js-post-flag-bar { display: none !important; }` : ``}
 
       `;
 
@@ -901,7 +904,7 @@
       // give up on the waffle bar if it's listing all flags as handled for a given post - load full flag info.
       // also do this if any flag might've put the post into review, so we can indicate that too
       const loadingFlags = waffleFlags.filter(pf => pf.dirty || pf.flags.some(f => IsReviewFlag(f))).map( pf => RefreshFlagsForPost(pf.postId) );
-      RenderToCInWaffleBar();
+      UpdateWaffleBar();
 
       StackExchange.initialized
          .then(initFlags);
@@ -995,7 +998,7 @@
          {
             return LoadAllFlags(postId)
                .then(flags => ShowFlags(postContainer, flags, expandComments))
-               .then(flags => RenderToCInWaffleBar());
+               .then(flags => UpdateWaffleBar());
          }
       }
 
@@ -1019,15 +1022,16 @@
             //       are "resolved". The correct information is loaded after clicking to load,
             //       so simply using the generic "inactive" is technically more correct
             //       (i.e., the best kind).
-            const tools = $(`<div class="s-card bs-md mod-tools mod-tools-post" data-totalflags="${totalFlags}">
-       <h3 class='flag-summary'><a class='show-all-flags' data-postid='${postId}'>${totalFlags} inactive post flags (click to load)</a></h3>
-       <ul class="flags">
-       </ul>
-       <div class="mod-actions">
-       </div>
-       <ul class="reviews">
-       </ul>
-   </div>`);
+            const tools = $(`
+<div class="s-card bs-md mod-tools mod-tools-post" data-totalflags="${totalFlags}">
+  <h3 class='flag-summary'><a class='show-all-flags' data-postid='${postId}'>${totalFlags} inactive post flags (click to load)</a></h3>
+  <ul class="flags">
+  </ul>
+  <div class="mod-actions">
+  </div>
+  <ul class="reviews">
+  </ul>
+</div>`);
             if (makeFlagInfoStickyAndFloatAbovePost)
             {
                tools.prependTo(postContainer.find("div.votecell + div.post-layout--right"));
@@ -1042,7 +1046,6 @@
                ShowFlags(postContainer, flags, true);
             }
          });
-
       }
 
       function ShowFlags(postContainer, postFlags, forceCommentVisibility)
@@ -1435,80 +1438,87 @@
                  /Low answer quality score/.test(flag.description));
       }
 
-      function RenderToCInWaffleBar()
+      function UpdateWaffleBar()
       {
-         let flagToC = $("<ul class='flagToC'>");
-         for (const postId in flagCache)
+         if (showTOCInWaffleBar)
          {
-            const post        = $(".answer[data-answerid='"+postId+"'],.question[data-questionid='"+postId+"']");
-            const userLink    = post.find(".user-details[itemprop='author'] a[href^='/users/']:first,.user-details #history-"+postId);
-            let   postType    = post.is(".answer") ? "answer" : "question";
-            let   url         = (postType == 'question' ? '#question' : "#" + postId);
-            let   attribution = (userLink.is('#history-'+postId) ? '(wiki)' : "by " + userLink.text());
-            if (!post.length) // handle flags spanning multiple pages of answers
+            let flagToC = $("<ul class='flagToC'>");
+            for (const postId in flagCache)
             {
-               postType    = "answer";
-               url         = ('/a/' + postId);
-               attribution = "on another page";
+               const post        = $(".answer[data-answerid='"+postId+"'],.question[data-questionid='"+postId+"']");
+               const userLink    = post.find(".user-details[itemprop='author'] a[href^='/users/']:first,.user-details #history-"+postId);
+               let   postType    = post.is(".answer") ? "answer" : "question";
+               let   url         = (postType == 'question' ? '#question' : "#" + postId);
+               let   attribution = (userLink.is('#history-'+postId) ? '(wiki)' : "by " + userLink.text());
+               if (!post.length) // handle flags spanning multiple pages of answers
+               {
+                  postType    = "answer";
+                  url         = ('/a/' + postId);
+                  attribution = "on another page";
+               }
+               const flagSummaries = SummarizeFlags(flagCache[postId], 3).map(function(summary)
+               {
+                  const ret = $(`<li data-count='${summary.count}&times;'>`);
+                  ret.attr("title", summary.description  + "\n-- " + summary.flaggerNames);
+                  if (!summary.active)
+                  {
+                     ret.addClass("inactive");
+                  }
+                  if (summary.type.toLowerCase() == 'comment')
+                  {
+                     $("<a>").attr("href", (/#/.test(url) ? '' : url) + "#comments-"+postId).text("(comment) " + summary.description).appendTo(ret);
+                  }
+                  else
+                  {
+                     ret.text(summary.description);
+                  }
+                  return ret;
+               });
+               const entry = $("<li>");
+               entry.append($("<a>")
+                  .attr("href", url)
+                  .text(postType + " " + attribution)
+                  .append($("<ul>").append(flagSummaries))
+               );
+
+               flagToC.append(entry);
             }
-            const flagSummaries = SummarizeFlags(flagCache[postId], 3).map(function(summary)
+
+            if (!Object.keys(flagCache).length)
             {
-               const ret = $(`<li data-count='${summary.count}&times;'>`);
-               ret.attr("title", summary.description  + "\n-- " + summary.flaggerNames);
-               if (!summary.active)
+               flagToC = $("<div style='padding:4px;' class='mx24'>All active flags on this page are currently in review; check back later to see if they were handled.</div>");
+            }
+
+            $('#postflag-bar .flag-wrapper, #postflag-bar .flagToC, .js-post-flag-bar>div>div').remove();
+            $("<div class='flag-summary grid fl1 fd-column'>").insertBefore($('#postflag-bar .nav-button.prev, #postflag-bar .nav-button.close, .js-post-flag-bar>div>button').first()).append(flagToC);
+            $('#postflag-bar').show();
+
+            function SummarizeFlags(flaggedPost, maxEntries)
+            {
+               const flags = flaggedPost.flags.concat(Object.values(flaggedPost.commentFlags.reduce(function(acc, cf)
+                  {
+                     const key       = cf.description + cf.active;
+                     const composite = acc[key] || {commentId: -1, description: cf.description, flaggers: [], active: cf.active};
+                     composite.flaggers.push.apply(composite.flaggers, cf.flaggers.length ? cf.flaggers : ["unknown"]);
+                     acc[key] = composite;
+                     return acc;
+                  }, {}))
+               );
+               maxEntries    = maxEntries < 0 ? flags.length : maxEntries||3;
+               const ordered = flags.sort((a,b) => b.active-a.active || b.flaggers.length-a.flaggers.length || b.description.length-a.description.length);
+               const bite    = maxEntries < flags.length ? maxEntries-1||1 : maxEntries;
+               const ret     = ordered.slice(0,bite)
+                  .map(f => ({count: f.flaggers.length||1, description: f.description, active: f.active, type: f.commentId ? 'comment' : 'post', flaggerNames: f.flaggers.map(u => u.name||'').join(",")}));
+               if (ordered.length > bite && maxEntries > bite)
                {
-                  ret.addClass("inactive");
-               }
-               if (summary.type.toLowerCase() == 'comment')
-               {
-                  $("<a>").attr("href", (/#/.test(url) ? '' : url) + "#comments-"+postId).text("(comment) " + summary.description).appendTo(ret);
-               }
-               else
-               {
-                  ret.text(summary.description);
+                  ret.push({count: ordered.slice(bite).reduce((acc, f) => (f.flaggers.length||1) + acc, 0), description: " more...", type: 'more'});
                }
                return ret;
-            });
-            const entry = $("<li>");
-            entry.append($("<a>")
-               .attr("href", url)
-               .text(postType + " " + attribution)
-               .append($("<ul>").append(flagSummaries))
-            );
-
-            flagToC.append(entry);
-         }
-
-         if (!Object.keys(flagCache).length)
-         {
-            flagToC = $("<div style='padding:4px;' class='mx24'>All active flags on this page are currently in review; check back later to see if they were handled.</div>");
-         }
-
-         $('#postflag-bar .flag-wrapper, #postflag-bar .flagToC, .js-post-flag-bar>div>div').remove();
-         $("<div class='flag-summary grid fl1 fd-column'>").insertBefore($('#postflag-bar .nav-button.prev, #postflag-bar .nav-button.close, .js-post-flag-bar>div>button').first()).append(flagToC);
-         $('#postflag-bar').show();
-
-         function SummarizeFlags(flaggedPost, maxEntries)
-         {
-            const flags = flaggedPost.flags.concat(Object.values(flaggedPost.commentFlags.reduce(function(acc, cf)
-               {
-                  const key       = cf.description + cf.active;
-                  const composite = acc[key] || {commentId: -1, description: cf.description, flaggers: [], active: cf.active};
-                  composite.flaggers.push.apply(composite.flaggers, cf.flaggers.length ? cf.flaggers : ["unknown"]);
-                  acc[key] = composite;
-                  return acc;
-               }, {}))
-            );
-            maxEntries = maxEntries < 0 ? flags.length : maxEntries||3;
-            const ordered = flags.sort((a,b) => b.active-a.active || b.flaggers.length-a.flaggers.length || b.description.length-a.description.length);
-            const bite = maxEntries < flags.length ? maxEntries-1||1 : maxEntries;
-            const ret = ordered.slice(0,bite)
-               .map(f => ({count: f.flaggers.length||1, description: f.description, active: f.active, type: f.commentId ? 'comment' : 'post', flaggerNames: f.flaggers.map(u => u.name||'').join(",")}));
-            if (ordered.length > bite && maxEntries > bite)
-            {
-               ret.push({count: ordered.slice(bite).reduce((acc, f) => (f.flaggers.length||1) + acc, 0), description: " more...", type: 'more'});
             }
-            return ret;
+         }
+         else
+         {
+            $(".js-post-flag-bar").remove();
          }
       }
 
@@ -1625,7 +1635,7 @@
             {
                return Object.values(flagList.reduce( function(acc, f)
                   {
-                     const key = [f.commentId, f.description, f.active, f.resultDate, f.resultUser && f.resultUser.userId].join(":");
+                     const key       = [f.commentId, f.description, f.active, f.resultDate, f.resultUser && f.resultUser.userId].join(":");
                      const composite = acc[key] || {
                         commentId:   f.commentId,
                         description: f.description,
