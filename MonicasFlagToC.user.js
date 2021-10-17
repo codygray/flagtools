@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.104
+// @version       0.105
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -634,26 +634,19 @@
          {
             const reasons =
             {
-               technical:
-               {
-                  id: 1,
-                  text: "",
-                  prompt: "flags should not be used to indicate technical inaccuracies, or an altogether wrong answer",
-                  title: "use when the post does not violate the standards of the site, but is simply misleading or inaccurate",
-               },
                noevidence:
                {
                   id: 2,
                   text: "",
-                  prompt: "a moderator reviewed your flag, but found no evidence to support it",
+                  prompt: "a moderator reviewed your flag, but found <b>no evidence</b> to support it",
                   title: "use when you were unable to find any evidence that the problem described by the flag actually occurred",
                },
-               nomods:
+               technicalwrong:
                {
-                  id: 3,
-                  text: "",
-                  prompt: "flags should only be used to make moderators aware of content that requires their intervention",
-                  title: "use when the problem described could be corrected by the flagger, passers-by, the passage of time, or being less pedantic",
+                  id: 1,
+                  text: "Flags should not be used to indicate technical inaccuracies, or an altogether wrong answer. You should downvote such answers.",
+                  prompt: "flags should not be used to indicate technical inaccuracies, or an altogether <b>wrong answer</b>",
+                  title: "use when the post does not violate the standards of the site, but is simply misleading or inaccurate",
                },
                stdflags:
                {
@@ -662,76 +655,107 @@
                   prompt: "using <b>standard flags</b> helps us prioritize problems and resolve them faster...",
                   title: "use when the flagger used a custom flag in a situation where a standard flag would be more appropriate",
                },
+               nomods:
+               {
+                  id: 3,
+                  text: "",
+                  prompt: "flags should only be used to make moderators aware of content that requires their intervention",
+                  title: "use when the problem described could be corrected by the flagger, passers-by, the passage of time, or being less pedantic",
+               },
                needsedits:
                {
                   id: -1,
                   text: "The issue(s) you note with this post can be corrected simply by editing it. Even anonymous users have the ability to suggest edits to posts. This does not require moderator intervention.",
-                  prompt: "post needs <b>editing, not moderator</b> intervention",
+                  prompt: "post <b>needs editing, not moderator</b> intervention",
                   title: "use when the post needs edits (either by the flagger or someone else), rather than moderator intervention",
-               },
-               notdupe:
-               {
-                  id: -2,
-                  text: "If you disagree that a question is a duplicate, you should edit the question to clarify the difference and why those answers didn't solve the problem. See: https://meta.stackoverflow.com/q/252252",
-                  prompt: "if you <b>disagree that a question is a duplicate</b>...",
-                  title: "use when the flag is complaining to a moderator that the question was incorrectly closed as a duplicate",
-                  notFor: [ "spam", "rude or abusive", "not an answer", "very low quality" ],
-               },
-               badmigration:
-               {
-                  id: -3,
-                  text: "Questions should not be migrated away unless they are clearly (1) off-topic for the site where they were originally asked, (2) on-topic for the proposed target site, (3) of notably high quality.",
-                  prompt: "this question should <b>not be migrated</b> elsewhere",
-                  title: "use when the flag is requesting migration of a question that is unsuitable for migration",
-                  notFor: [ "spam", "rude or abusive", "not an answer", "very low quality" ],
-               },
-               oldmigration:
-               {
-                  id: -4,
-                  text: "Questions that are more than 60 days old cannot be migrated to other Stack Exchange sites.",
-                  prompt: "questions <b>more than 60 days old</b> cannot be migrated",
-                  title: "use when the flag is requesting migration of a question that is too old (> 60 days) to migrate",
-                  notFor: [ "spam", "rude or abusive", "not an answer", "very low quality" ],
-               },
-               nodeletion:
-               {
-                  id: -5,
-                  text: `We do not routinely delete questions that have received answers, as those answers may prove useful to future viewers. Please see: ${window.location.hostname}/help/what-to-do-instead-of-deleting-question`,
-                  prompt: "we <b>do not routinely delete</b> questions that have received answers...",
-                  title: "use when the flagger is requesting deletion of a question with answers that you don't think should be deleted",
-                  notFor: [ "spam", "rude or abusive", "not an answer", "very low quality" ],
-               },
-               changeaccept:
-               {
-                  id: -6,
-                  text: `Moderators cannot set or change the accepted answer. This can only be done by the original asker, and is optional. Please see: ${window.location.hostname}/help/accepted-answer`,
-                  prompt: "moderators cannot set or change the <b>accepted answer</b>...",
-                  title: "use when the flagger is requesting that the accepted answer be set/changed",
-                  notFor: [ "spam", "rude or abusive", "not an answer", "very low quality" ],
-               },
-               downvotewhine:
-               {
-                  id: -7,
-                  text: 'Users can vote on posts as they see fit, whether up or down. Moderators do not intervene in legitimate voting. To see common reasons for downvoting, hover over the downvote arrow and read its tooltip.',
-                  prompt: "Users can <b>vote</b> on posts as they see fit, whether up or down. Moderators do not intervene...",
-                  title: "use when the flagger is whining about downvotes (and it is not a legitimate flag about vote fraud)",
-                  notFor: [ "spam", "rude or abusive", "not an answer", "very low quality" ],
                },
                notspam:
                {
-                  id: -8,
+                  id: -2,
                   text: "While this question is of extremely low quality and needs to be closed, it is not spam. Please review the list of flag options that are available to you, and choose a more appropriate flag next time.",
                   prompt: "while this question is of extremely low quality and needs to be closed, it is <b>not spam</b>...",
                   title: "use when the flagger has raised a spam flag on garbage (recognizes the legitimacy of their concerns, but gently corrects the specific flag choice)",
                   onlyFor: [ "spam" ],
                },
-               nofraud:
+               notabusive:
+               {
+                  id: -3,
+                  text: "While we understand your concern(s), the \"rude/abusive\" flag should only be used when the post is completely unsalvageable and needs to be immediately deleted. This post can (and should have been) fixed by submitting an edit.",
+                  prompt: "post is problematic but <b>not irredeemably rude/abusive</b>; you should have edited instead",
+                  title: "use when the flagger has raised a \"rude/abusive\" flag on something that should just be edited (recognizes the legitimacy of their concerns, but gently corrects the specific flag choice)",
+                  onlyFor: [ "rude or abusive" ],
+               },
+               notvlqquestion:
+               {
+                  id: -4,
+                  text: "Only flag questions as \"very low quality\" when they require immediate deletion. This question just needs to be closed pending edits. You should have raised one of the \"needs improvement\" flags instead.",
+                  prompt: "question is not VLQ, just needs to be closed",
+                  title: "use when the flagger has raised a \"very low quality\" flag on a question when they should have voted/flagged to close it instead",
+                  onlyFor: [ "very low quality" ],
+               },
+               notdupe:
+               {
+                  id: -5,
+                  text: "If you disagree that a question is a duplicate, you should edit the question to clarify the difference and why those answers didn't solve the problem. See: https://meta.stackoverflow.com/q/252252",
+                  prompt: "if you <b>disagree that a question is a duplicate</b>...",
+                  title: "use when the flag is complaining to a moderator that the question was incorrectly closed as a duplicate",
+                  onlyFor: [ "<custom>" ],
+               },
+               badmigration:
+               {
+                  id: -6,
+                  text: "Questions should not be migrated away unless they are clearly (1) off-topic for the site where they were originally asked, (2) on-topic for the proposed target site, (3) of notably high quality.",
+                  prompt: "this question should <b>not be migrated</b> elsewhere",
+                  title: "use when the flag is requesting migration of a question that is unsuitable for migration",
+                  onlyFor: [ "<custom>" ],
+               },
+               oldmigration:
+               {
+                  id: -7,
+                  text: "Questions that are more than 60 days old cannot be migrated to other Stack Exchange sites.",
+                  prompt: "questions <b>more than 60 days old</b> cannot be migrated",
+                  title: "use when the flag is requesting migration of a question that is too old (> 60 days) to migrate",
+                  onlyFor: [ "<custom>" ],
+               },
+               nodeletion:
+               {
+                  id: -8,
+                  text: `We do not routinely delete questions that have received answers, as those answers may prove useful to future viewers. Please see: ${window.location.hostname}/help/what-to-do-instead-of-deleting-question`,
+                  prompt: "we <b>do not routinely delete</b> questions that have received answers...",
+                  title: "use when the flagger is requesting deletion of a question with answers that you don't think should be deleted",
+                  onlyFor: [ "<custom>" ],
+               },
+               changeaccept:
                {
                   id: -9,
+                  text: `Moderators cannot set or change the accepted answer. This can only be done by the original asker, and is optional. Please see: ${window.location.hostname}/help/accepted-answer`,
+                  prompt: "moderators cannot set or change the <b>accepted answer</b>...",
+                  title: "use when the flagger is requesting that the accepted answer be set/changed",
+                  onlyFor: [ "<custom>" ],
+               },
+               downvotewhine:
+               {
+                  id: -10,
+                  text: 'Users can vote on posts as they see fit, whether up or down. Moderators do not intervene in legitimate voting. To see common reasons for downvoting, hover over the downvote arrow and read its tooltip.',
+                  prompt: "users can vote on posts as they see fit... <b>mods do not intervene in legitimate voting</b>...",
+                  title: "use when the flagger is whining about downvotes in general (and it is not a legitimate flag about vote fraud)",
+                  onlyFor: [ "<custom>" ],
+               },
+               downvoteuser:
+               {
+                  id: -11,
+                  text: 'Users can vote on posts as they see fit, whether up or down, and votes are anonymous. You should not make assumptions about who downvoted a post; see: https://meta.stackoverflow.com/q/388686',
+                  prompt: "users can vote on posts as they see fit... <b>do not assume who voted</b>...",
+                  title: "use when the flagger is whining about downvotes from a specific user (and it is not a legitimate flag about vote fraud)",
+                  onlyFor: [ "<custom>" ],
+               },
+               nofraud:
+               {
+                  id: -12,
                   text: "Thank you for your flag. A moderator has carefully investigated the situation, but did not find any evidence of suspicious or targeted voting for/against your account.",
                   prompt: "<b>no evidence of suspicious or targeted voting</b> was found for/against your account",
                   title: "use when the flagger has asked for a targeted/fraudulent voting investigation, but that turned up nothing even remotely justifying a flag",
-                  notFor: [ "spam", "rude or abusive", "not an answer", "very low quality" ],
+                  onlyFor: [ "<custom>" ],
                },
             };
 
@@ -742,7 +766,7 @@
                {
                   id: 0,
                   text: lastDecline,
-                  prompt: `<b>last-used reason:</b> ${lastDecline}`,
+                  prompt: `<b><u>last-used reason:</u></b> ${lastDecline}`,
                   title: "re-use the last custom reason that you typed to decline a flag"
                };
             }
@@ -768,13 +792,23 @@
 
             for (const reason in reasons)
             {
-               if (flag)
+               if (flag && reasons[reason].onlyFor)
                {
-                  if (reasons[reason].onlyFor && (reasons[reason].onlyFor.indexOf(flag.description.toLowerCase()) == -1))
+                  const flagMessage = flag.description.toLowerCase();
+                  if (reasons[reason].onlyFor == "<custom>")
                   {
-                     continue;
+                     const standardFlags = [ "spam",
+                                             "rude or abusive",
+                                             "not an answer",
+                                             "very low quality"
+                                           ];
+                     if ((standardFlags.includes(flagMessage)) ||
+                         (flagMessage.endsWith(" (auto)")))
+                     {
+                        continue;
+                     }
                   }
-                  if (reasons[reason].notFor && (reasons[reason].notFor.indexOf(flag.description.toLowerCase()) != -1))
+                  else if (reasons[reason].onlyFor.indexOf(flagMessage) == -1)
                   {
                      continue;
                   }
@@ -807,13 +841,13 @@
                let declineText;
                if (reasons[this.value])
                {
-                  declineId = Math.max(reasons[this.value].id, 0);
+                  declineId  = Math.max(reasons[this.value].id, 0);
                   declineText = reasons[this.value].text;
                }
                else
                {
                   // User typed in a custom reason.
-                  declineId = 0;
+                  declineId   = 0;
                   declineText = customDeclineField.val();
                   localStorage["flaaaaags.last-decline"] = declineText;
                }
