@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.105
+// @version       0.106
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -1393,7 +1393,7 @@
          {
             $("<div class='flag-outcome'><i></i></div>")
                .find("i").text(flag.result).end()
-               .append(flag.resultUser ? `<span> &ndash; </span><a href="/users/${flag.resultUser.userId}" class="flag-creation-user comment-user">${flag.resultUser.name}</a>${flag.resultUser.isMod ? '<span class="mod-flair " title="Moderator">♦</span>' : ''}` : '<span> &ndash; </span>')
+               .append(flag.resultUser ? `<span> &ndash; </span><a href="/users/${flag.resultUser.userId}" class="flag-creation-user comment-user">${flag.resultUser.name}${flag.resultUser.isMod ? '<span class="mod-flair mtn2" title="Moderator">♦</span>' : ''}</a>` : '<span> &ndash; </span>')
                .append(`<span class="flag-creation-date comment-date" dir="ltr"> <span title="${FlagFilter.tools.formatISODate(flag.resultDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(flag.resultDate)}</span></span>`)
                .appendTo(flagItem);
          }
