@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.102
+// @version       0.103
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -190,10 +190,25 @@
          color: var(--orange-900);
       }
 
+      .mod-tools.mod-tools-post .revision-comment
+      {
+         background-color: var(--orange-100);
+      }
+
+      .mod-tools.mod-tools-post .active-flag .revision-comment
+      {
+         font-weight: 600;
+      }
+
       .mod-tools.mod-tools-post .dismiss-flag-popup-buttons
       {
          float: right;
          margin-left: 9px;
+      }
+
+      .mod-tools.mod-tools-post .dismiss-flag-popup-buttons .flag-dismiss-helpful
+      {
+         color: var(--theme-button-color);
       }
 
       .mod-tools.mod-tools-post .dismiss-flag-popup-buttons .flag-dismiss-decline
@@ -230,17 +245,6 @@
          margin-left: 20px;
       }
 
-      .mod-tools .dismiss-flags-popup .mark-flag-helpful,
-      .mod-tools .dismiss-flags-popup .mark-flag-declined
-      {
-         padding: 6px;
-      }
-
-      .mod-tools .dismiss-flags-popup .mark-flag-declined.-btn
-      {
-         color: var(--red-800);
-      }
-
       .comment .flag-dismiss-comment
       {
          grid-column: 1 / span 2;
@@ -256,7 +260,7 @@
       .mod-tools .dismiss-flags-popup
       {
          margin: 6px 0 0 0;
-         padding: 0 0 16px 0;
+         padding: 0;
          clear: both;
          display: none;
       }
@@ -266,19 +270,38 @@
          display: grid;
       }
 
+      .mod-tools .dismiss-flags-popup button,
+      .mod-tools .dismiss-flags-popup .-input
+      {
+         margin: 2px 0;
+      }
+
       .mod-tools .dismiss-flags-popup button
       {
-         margin: 3px 0;
+         font-size: 93%;
+         padding: 6px;
+      }
+
+      .mod-tools .dismiss-flags-popup div.-btn
+      {
+         float: right;
+         margin-right: 1px;
+      }
+
+      .mod-tools .dismiss-flags-popup button[type="submit"]
+      {
+         padding-left:  14px;
+         padding-right: 14px;
+      }
+
+      .mod-tools .dismiss-flags-popup .mark-flag-declined.-btn
+      {
+         color: var(--red-800);
       }
 
       .mod-tools .dismiss-flags-popup form>button.g-col
       {
          text-align: left;
-      }
-
-      .mod-tools .dismiss-flags-popup .g-col.-input + .g-col.-btn
-      {
-         margin-right: -1px;
       }
 
 
@@ -296,12 +319,14 @@
 
       .mod-actions button
       {
+         float: right;
          margin: 0 2px;
       }
 
-      .mod-actions .flag-dispute-spam
+      .mod-actions .flag-dispute-spam,
+      .mod-actions .migrate-btn
       {
-         float: right;
+         float: left;
       }
 
       /**/
@@ -575,11 +600,11 @@
                         <div class="g-col -input" style="width: 100%;">
                             <input type="text" maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm">
                         </div>
+                        <span class="text-counter cool">Enter nothing at all, or up to 200 characters of cheerful guidance</span>
                         <div class="g-col -btn">
                           <button class="s-btn s-btn__filled s-btn__primary mark-flag-helpful" type="submit">Submit</button>
                         </div>
                      </div>
-                     <span class="text-counter cool">enter nothing at all, or up to 200 characters of cheerful guidance</span>
                    </form>
                </div>
             `);
@@ -729,11 +754,11 @@
                         <div class="g-col -input" style="width: 100%;">
                             <input type="text" maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm">
                         </div>
+                        <span class="text-counter cool">Enter at least 10 characters of righteous indignation</span>
                         <div class="g-col -btn">
                           <button class="s-btn s-btn__filled s-btn__danger mark-flag-declined" value="other" type="submit" disabled>Decline</button>
                         </div>
                      </div>
-                     <span class="text-counter cool">enter at least 10 characters of righteous indignation</span>
                   </form>
                </div>
             `);
@@ -1046,47 +1071,51 @@
             FlagFilter.tools.predictMigrationDest(flag.description)
                .done(function(site)
                {
-                  if (modActions.find(".migration-link").length)  { return; }
-                  if (!site.name)                                 { return; }
-                  $(`<button type='button' class='migration-link s-btn s-btn__muted s-btn__outlined' title='migrate this question to a site chosen by the magic 8-ball'>Migrate to ${site.name}</button>`)
-                     .click(function()
-                     {
-                        const questionId = location.pathname.match(/\/questions\/(\d+)/)[1];
-                        if (confirm(`This question will be immediately migrated to ${site.name} (${site.baseHostAddress}).\n\nContinue with the migration?`))
+                  // If the site's name is available and we haven't already added it,
+                  // add the migration button.
+                  if ((site.name) && (!modActions.find(".migrate-btn").length))
+                  {
+                     $(`<button type='button' class='migrate-btn s-btn s-btn__muted s-btn__outlined' title='migrate this question to a site chosen by the magic 8-ball'>Migrate to ${site.name}</button>`)
+                        .click(function()
                         {
-                           // Attempt to migrate the question.
-                           const doMigrate = (iRetry = 0) =>
+                           const questionId = location.pathname.match(/\/questions\/(\d+)/)[1];
+                           if (confirm(`This question will be immediately migrated to ${site.name} (${site.baseHostAddress}).\n\nContinue with the migration?`))
                            {
-                              if (iRetry > 2)  { return; }
+                              // Attempt to migrate the question.
+                              const doMigrate = (iRetry = 0) =>
+                              {
+                                 if (iRetry > 2)  { return; }
 
-                              FlagFilter.tools.migrateTo(questionId, site.baseHostAddress)
-                                 .fail(() =>
-                                 {
-                                    alert("Failed to perform migration.");
-                                    doMigrate(++iRetry);
-                                 })
-                                 .done((xhr) =>
-                                 {
-                                    if ((xhr.Success === "false") &&
-                                        (xhr.Message === "This question is already closed - please refresh the page"))
+                                 FlagFilter.tools.migrateTo(questionId, site.baseHostAddress)
+                                    .fail(() =>
                                     {
-                                       return FlagFilter.tools.reopenQuestion(questionId)
-                                                 .fail(() =>
-                                                 {
-                                                    alert("Failed to reopen question (cannot migrate a closed question).");
-                                                 })
-                                                 .done(() =>
-                                                 {
-                                                    doMigrate(iRetry);
-                                                 });
-                                    }
-                                    location.reload();
-                                 });
-                           };
-                           doMigrate();
-                        }
-                     })
-                     .appendTo(modActions);
+                                       alert("Failed to perform migration.");
+                                       doMigrate(++iRetry);
+                                    })
+                                    .done((xhr) =>
+                                    {
+                                       if ((xhr.Success === false) &&
+                                           (xhr.Message === "This question is already closed - please refresh the page"))
+                                       {
+                                          return FlagFilter.tools.reopenQuestion(questionId)
+                                                    .fail(() =>
+                                                    {
+                                                       alert("Failed to reopen question (cannot migrate a closed question).");
+                                                    })
+                                                    .done(() =>
+                                                    {
+                                                       doMigrate(iRetry);
+                                                    });
+                                       }
+
+                                       //location.reload();
+                                    });
+                              };
+                              doMigrate();
+                           }
+                        })
+                        .appendTo(modActions);
+                  }
                })
 
             flagContainer.append(RenderFlagItem(false, flag, postFlags.reviews));
@@ -1110,8 +1139,8 @@
          if (activeCount > 0)
          {
             modActions.prepend(`
-                               <button class="flag-dismiss-all-helpful s-btn s-btn__outlined" type="button" title="mark all pending flags as helpful">Helpful all&hellip;</button>
                                <button class="flag-dismiss-all-decline s-btn s-btn__outlined s-btn__danger" type="button" title="mark all pending flags as declined">Decline all&hellip;</button>
+                               <button class="flag-dismiss-all-helpful s-btn s-btn__outlined" type="button" title="mark all pending flags as helpful">Helpful all&hellip;</button>
                                `);
          }
 
@@ -1124,9 +1153,9 @@
          if (postFlags.flags.length)
          {
             const flagSummary = [];
-            if (activeCount > 0) flagSummary.push(activeCount + " active post flags");
-            if (inactiveCount) flagSummary.push(inactiveCount + " resolved post flags");
-            if (postFlags.assumeInactiveCommentFlagCount) flagSummary.push(`*<a class='show-all-flags' data-postid='${postFlags.postId}' title='Not sure about these flags; click to load accurate information for ${postFlags.assumeInactiveCommentFlagCount} undefined flags'> click to load full flag info</a>`);
+            if (activeCount   > 0)                         flagSummary.push(activeCount   + " active post flags");
+            if (inactiveCount > 0)                         flagSummary.push(inactiveCount + " resolved post flags");
+            if (postFlags.assumeInactiveCommentFlagCount)  flagSummary.push(`*<a class='show-all-flags' data-postid='${postFlags.postId}' title='Not sure about these flags; click to load accurate information for ${postFlags.assumeInactiveCommentFlagCount} undefined flags'> click to load full flag info</a>`);
 
             tools.show()
                  .find("h3.flag-summary").html(flagSummary.join("; "));
@@ -1642,7 +1671,7 @@
                         return {
                            flagIds:     ids,
                            description: description,
-                           active:      flag.find(".js-dismiss-flags").length > 0,
+                           active:      flag.find(".js-resolve-flags").length > 0,
                            flaggers:    mess.find(">span>a[href^='/users/']")
                               .map(function()
                               {
