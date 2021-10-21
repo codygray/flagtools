@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.106
+// @version       0.107
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -680,7 +680,7 @@
                notabusive:
                {
                   id: -3,
-                  text: "While we understand your concern(s), the \"rude/abusive\" flag should only be used when the post is completely unsalvageable and needs to be immediately deleted. This post can (and should have been) fixed by submitting an edit.",
+                  text: "While we understand your concern(s), the \"rude/abusive\" flag should only be used when the post is completely unsalvageable and needs deletion. This post can (and should have been) fixed by editing.",
                   prompt: "post is problematic but <b>not irredeemably rude/abusive</b>; you should have edited instead",
                   title: "use when the flagger has raised a \"rude/abusive\" flag on something that should just be edited (recognizes the legitimacy of their concerns, but gently corrects the specific flag choice)",
                   onlyFor: [ "rude or abusive" ],
