@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.0.0
+// @version       1.0.1
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -692,8 +692,8 @@
                notvlqquestion:
                {
                   id: -4,
-                  text: "Only flag questions as \"very low quality\" when they require immediate deletion. This question just needs to be closed pending edits. You should have raised one of the \"needs improvement\" flags instead.",
-                  prompt: "question is not VLQ, just needs to be closed",
+                  text: "Only flag questions as \"very low quality\" when they require immediate deletion. This just needs to be closed pending edits. You should have raised one of the \"needs improvement\" flags instead.",
+                  prompt: "question is <b>not VLQ</b>, just needs to be closed",
                   title: "use when the flagger has raised a \"very low quality\" flag on a question when they should have voted/flagged to close it instead",
                   onlyFor: [ "very low quality" ],
                },
