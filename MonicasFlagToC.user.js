@@ -3,7 +3,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Shog9
 // @namespace     https://github.com/Shog9/flagfilter/
-// @version       0.107
+// @version       0.108
 // @include       http*://stackoverflow.com/questions/*
 // @include       http*://*.stackoverflow.com/questions/*
 // @include       http*://askubuntu.com/questions/*
@@ -883,7 +883,8 @@
                          RegExp(`\\b${siteBaseHostStripped}\\b`.replace('.stackoverflow', ''), 'i').test(flagText) ||
                          RegExp(site.name.replace(' ', '\\s?'), 'i').test(flagText))
                      {
-                        ret = { baseHostAddress: siteBaseHost, name: site.name };
+                        ret.baseHostAddress = siteBaseHost;
+                        ret.name            = site.name;
                         return ret;
                      }
                   });
@@ -1085,10 +1086,10 @@
       function ShowFlags(postContainer, postFlags, forceCommentVisibility)
       {
          const tools         = postContainer.find(".mod-tools-post");
-         const modActions    = tools.find(".mod-actions")
-                                    .empty();
-         const flagContainer = tools.find("ul.flags")
-                                    .empty();
+         const modActions    = tools.find(".mod-actions").empty();
+         const flagContainer = tools.find("ul.flags").empty();
+         const isQuestion    = ((postContainer.length === 1) && (postContainer[0].id === 'question'));
+
          let activeCount         = 0;
          let inactiveCount       = 0;
          let nonDisputedRedCount = 0;
@@ -1108,9 +1109,9 @@
             FlagFilter.tools.predictMigrationDest(flag.description)
                .done(function(site)
                {
-                  // If the site's name is available and we haven't already added it,
-                  // add the migration button.
-                  if ((site.name) && (!modActions.find(".migrate-btn").length))
+                  // If we have a destination site name, this is a question, and
+                  // we haven't already added the migration button, add it now.
+                  if (site.name && isQuestion && (!modActions.find(".migrate-btn").length))
                   {
                      $(`<button type='button' class='migrate-btn s-btn s-btn__muted s-btn__outlined' title='migrate this question to a site chosen by the magic 8-ball'>Migrate to ${site.name}</button>`)
                         .click(function()
@@ -1145,7 +1146,7 @@
                                                     });
                                        }
 
-                                       //location.reload();
+                                       location.reload();
                                     });
                               };
                               doMigrate();
@@ -1508,7 +1509,7 @@
                   }
                   return ret;
                });
-               const entry = $("<li>");
+               let entry = $("<li>");
                entry.append($("<a>")
                   .attr("href", url)
                   .text(postType + " " + attribution)
@@ -1621,8 +1622,8 @@
                   },
                   flaggers: [
                   {
-                     userId: flagger ? +flagger.href.match(/\/users\/([-\d]+)/)[1] : -1,
-                     name:  (flagger && flagger.textContent.trim()) || "",
+                     userId:           flagger ? +flagger.href.match(/\/users\/([-\d]+)/)[1] : -1,
+                     name:             (flagger && flagger.textContent.trim()) || "",
                      flagCreationDate: FlagFilter.tools.parseISODate(created.title)
                   }]
                };
@@ -1704,11 +1705,11 @@
                   flags:  fp.find(".js-post-flag-group")
                      .map(function()
                      {
-                        const flag = $(this);
-                        const mess = flag.find(">div:first .js-flag-text");
-                        let   ids  = flag.data("flag-ids")
-                        ids        = ids.split ? ids.split(';').map(id => +id)
-                                               : [ids];
+                        const flag        = $(this);
+                        const mess        = flag.find(">div:first .js-flag-text");
+                        let   ids         = flag.data("flag-ids")
+                        ids               = ids.split ? ids.split(';').map(id => +id)
+                                                      : [ids];
                         let   foundUser   = false;
                         let   tmp         = $("<div>");
                         const description = tmp.append( mess.contents().filter( function() { foundUser = foundUser || $(this).has("a[href^='/users/']").length; return !foundUser; }).clone() ).html().replace(/\s+-\s+$/, '');
