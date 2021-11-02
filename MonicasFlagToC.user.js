@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.1.1
+// @version       1.1.2
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -137,7 +137,6 @@
    `     position: sticky;
          z-index: 1050;
          top: var(--top-bar-allocated-space);
-   }
    `
    :
          ''
