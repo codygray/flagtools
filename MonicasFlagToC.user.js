@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.0.1
+// @version       1.1.0
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -605,7 +605,7 @@
                      <label class="f-label">Mark flag(s) as helpful because&hellip;</label>
                      <div class="g-col g-row _gutters">
                         <div class="g-col -input" style="width: 100%;">
-                            <input type="text" maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm">
+                            <textarea maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm"></textarea>
                         </div>
                         <span class="text-counter cool">Enter nothing at all, or up to 200 characters of cheerful guidance</span>
                         <div class="g-col -btn">
@@ -617,19 +617,35 @@
             `);
 
             uiParent.parent().find(".dismiss-flags-popup").remove();
+
             helpfulForm
                .insertAfter(uiParent)
                .slideDown(250)
                .find("button,input").first().focus();
 
-            helpfulForm.find("input[type=text]").charCounter({min: 0, max: 200, target: helpfulForm.find(".text-counter")});
-
-            helpfulForm.find(".mark-flag-helpful").click(function(ev)
+            const handleSubmitHelpful = (ev) =>
             {
                ev.preventDefault();
                helpfulForm.remove();
-               result.resolve({helpful: true, declineId: 0, comment: helpfulForm.find("input[type=text]").val()});
+               result.resolve(
+               {
+                  helpful: true,
+                  declineId: 0,
+                  comment: helpfulForm.find("textarea").val()
+               });
+            }
+            helpfulForm.find("textarea")
+               .charCounter({min: 0, max: 200, target: helpfulForm.find(".text-counter")})
+               .on("keydown", function(ev)
+            {
+               // Make <Enter> key presses submit the form, not insert a new line.
+               // <Shift>+<Enter> still inserts a new line, not that it's useful to do so.
+               if ((ev.which === 13) && !ev.shiftKey)
+               {
+                  handleSubmitHelpful(ev);
+               }
             });
+            helpfulForm.find(".mark-flag-helpful").click(handleSubmitHelpful);
 
             return result.promise();
          },
@@ -783,7 +799,7 @@
                      <label class="f-label">Decline flag(s) because&hellip;</label>
                      <div class="g-col g-row _gutters">
                         <div class="g-col -input" style="width: 100%;">
-                            <input type="text" maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm">
+                            <textarea maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm"></textarea>
                         </div>
                         <span class="text-counter cool">Enter at least 10 characters of righteous indignation</span>
                         <div class="g-col -btn">
@@ -824,20 +840,12 @@
             }
 
             uiParent.parent().find(".dismiss-flags-popup").remove();
+
             declineForm
                .insertAfter(uiParent)
-               .slideDown(250);
+               .slideDown(250)
 
-            const customDeclineField = declineForm.find("input[type=text]")
-               .focus()
-               .on("input", function()
-               {
-                  const text = customDeclineField.val();
-                  declineForm.find(".mark-flag-declined[value=other]").prop("disabled", text.length < 10);
-               })
-               .charCounter({min: 10, max: 200, target: declineForm.find(".text-counter")})
-
-            declineForm.find(".mark-flag-declined").click(function(ev)
+            const handleSubmitDecline = (ev) =>
             {
                ev.preventDefault();
 
@@ -845,7 +853,7 @@
                let declineText;
                if (reasons[this.value])
                {
-                  declineId  = Math.max(reasons[this.value].id, 0);
+                  declineId   = Math.max(reasons[this.value].id, 0);
                   declineText = reasons[this.value].text;
                }
                else
@@ -857,8 +865,31 @@
                }
 
                declineForm.remove();
-               result.resolve({helpful: false, declineId: declineId, comment: declineText});
-            });
+               result.resolve(
+               {
+                  helpful:   false,
+                  declineId: declineId,
+                  comment:   declineText
+               });
+            }
+            const customDeclineField = declineForm.find("textarea")
+               .focus()
+               .charCounter({min: 10, max: 200, target: declineForm.find(".text-counter")})
+               .on("input", function()
+               {
+                  const text = customDeclineField.val();
+                  declineForm.find(".mark-flag-declined[value=other]").prop("disabled", text.length < 10);
+               })
+               .on("keydown", function(ev)
+               {
+                  // Make <Enter> key presses submit the form, not insert a new line.
+                  // <Shift>+<Enter> still inserts a new line, not that it's useful to do so.
+                  if ((ev.which === 13) && !ev.shiftKey)
+                  {
+                     handleSubmitDecline(ev);
+                  }
+               });
+            declineForm.find(".mark-flag-declined").click(handleSubmitDecline);
 
             return result.promise();
          },
