@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.1.2
+// @version       1.1.3
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -843,8 +843,8 @@
                let declineText;
                if (reasons[this.value])
                {
-                  declineId   = Math.max(reasons[this.value].id, 0);
-                  declineText = reasons[this.value].text;
+                  declineId   = Math.max(reasons[ev.target.value].id, 0);
+                  declineText = reasons[ev.target.value].text;
                }
                else
                {
