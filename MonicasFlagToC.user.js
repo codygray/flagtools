@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.1.0
+// @version       1.1.1
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -28,7 +28,6 @@
    'use strict';
 
    const makeFlagInfoStickyAndFloatAbovePost = true;
-   const haveStickyTopbar                    = true;
    const showTOCInWaffleBar                  = false;
 
    // Registered on Stack Apps in order to obtain an API key.
@@ -137,15 +136,7 @@
    ?
    `     position: sticky;
          z-index: 1050;
-   ${haveStickyTopbar
-   ?
-   `
-         top: 50px;
-   `
-   :
-   `
-         top: 0;
-   `
+         top: var(--top-bar-allocated-space);
    }
    `
    :
