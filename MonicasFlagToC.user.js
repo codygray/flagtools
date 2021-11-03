@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.1.4
+// @version       1.1.5
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -881,7 +881,7 @@
                      handleSubmitDecline(ev);
                   }
                });
-            declineForm.find(".mark-flag-declined").not("b").click(handleSubmitDecline);
+            declineForm.find(".mark-flag-declined").click(handleSubmitDecline);
 
             return result.promise();
          },
