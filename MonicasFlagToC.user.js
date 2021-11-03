@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.1.3
+// @version       1.1.4
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -839,12 +839,13 @@
             {
                ev.preventDefault();
 
-               let declineId;
-               let declineText;
-               if (reasons[ev.target.value])
+               const value = ev.target.closest('.mark-flag-declined').value;
+               let   declineId;
+               let   declineText;
+               if (reasons[value])
                {
-                  declineId   = Math.max(reasons[ev.target.value].id, 0);
-                  declineText = reasons[ev.target.value].text;
+                  declineId   = Math.max(reasons[value].id, 0);
+                  declineText = reasons[value].text;
                }
                else
                {
@@ -855,6 +856,7 @@
                }
 
                declineForm.remove();
+
                result.resolve(
                {
                   helpful:   false,
@@ -879,7 +881,7 @@
                      handleSubmitDecline(ev);
                   }
                });
-            declineForm.find(".mark-flag-declined").click(handleSubmitDecline);
+            declineForm.find(".mark-flag-declined").not("b").click(handleSubmitDecline);
 
             return result.promise();
          },
