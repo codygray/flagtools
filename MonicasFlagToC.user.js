@@ -841,7 +841,7 @@
 
                let declineId;
                let declineText;
-               if (reasons[this.value])
+               if (reasons[ev.target.value])
                {
                   declineId   = Math.max(reasons[ev.target.value].id, 0);
                   declineText = reasons[ev.target.value].text;
