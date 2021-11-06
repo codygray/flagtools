@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.1.5
+// @version       1.2.0
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -586,9 +586,9 @@
             }
          },
 
-         flagHelpfulUI: function(uiParent)
+         flagHelpfulUI: function(uiParent, isQuestion)
          {
-            const result = $.Deferred();
+            const result      = $.Deferred();
             const helpfulForm = $(`
                <div class="dismiss-flags-popup">
                   <form class="g-column _gutters" style="width: 100%;">
@@ -640,23 +640,17 @@
             return result.promise();
          },
 
-         flagDeclineUI: function(uiParent, flag)
+         flagDeclineUI: function(uiParent, isQuestion, flag)
          {
             const reasons =
             {
-               noevidence:
-               {
-                  id: 2,
-                  text: "",
-                  prompt: "a moderator reviewed your flag, but found <b>no evidence</b> to support it",
-                  title: "use when you were unable to find any evidence that the problem described by the flag actually occurred",
-               },
                technicalwrong:
                {
                   id: 1,
                   text: "Flags should not be used to indicate technical inaccuracies, or an altogether wrong answer. You should downvote such answers.",
                   prompt: "flags should not be used to indicate technical inaccuracies, or an altogether <b>wrong answer</b>",
                   title: "use when the post does not violate the standards of the site, but is simply misleading or inaccurate",
+                  limitTo: "answer",
                },
                stdflags:
                {
@@ -664,6 +658,14 @@
                   text: "",
                   prompt: "using <b>standard flags</b> helps us prioritize problems and resolve them faster...",
                   title: "use when the flagger used a custom flag in a situation where a standard flag would be more appropriate",
+                  onlyFor: [ "<custom>" ],
+               },
+               noevidence:
+               {
+                  id: 2,
+                  text: "",
+                  prompt: "a moderator reviewed your flag, but found <b>no evidence</b> to support it",
+                  title: "use when you were unable to find any evidence that the problem described by the flag actually occurred",
                },
                nomods:
                {
@@ -679,17 +681,27 @@
                   prompt: "post <b>needs editing, not moderator</b> intervention",
                   title: "use when the post needs edits (either by the flagger or someone else), rather than moderator intervention",
                },
-               notspam:
+               notspamquestion:
                {
                   id: -2,
                   text: "While this question is of extremely low quality and needs to be closed, it is not spam. Please review the list of flag options that are available to you, and choose a more appropriate flag next time.",
                   prompt: "while this question is of extremely low quality and needs to be closed, it is <b>not spam</b>...",
                   title: "use when the flagger has raised a spam flag on garbage (recognizes the legitimacy of their concerns, but gently corrects the specific flag choice)",
+                  limitTo: "question",
+                  onlyFor: [ "spam" ],
+               },
+               notspamanswer:
+               {
+                  id: -3,
+                  text: "While this answer is of extremely low quality and needs to be deleted, it is not spam. Please review the list of flag options that are available to you, and choose a more appropriate flag next time.",
+                  prompt: "while this answer is of extremely low quality and needs to be closed, it is <b>not spam</b>...",
+                  title: "use when the flagger has raised a spam flag on NAA/VLQ (recognizes the legitimacy of their concerns, but gently corrects the specific flag choice)",
+                  limitTo: "answer",
                   onlyFor: [ "spam" ],
                },
                notabusive:
                {
-                  id: -3,
+                  id: -4,
                   text: "While we understand your concern(s), the \"rude/abusive\" flag should only be used when the post is completely unsalvageable and needs deletion. This post can (and should have been) fixed by editing.",
                   prompt: "post is problematic but <b>not irredeemably rude/abusive</b>; you should have edited instead",
                   title: "use when the flagger has raised a \"rude/abusive\" flag on something that should just be edited (recognizes the legitimacy of their concerns, but gently corrects the specific flag choice)",
@@ -697,47 +709,52 @@
                },
                notvlqquestion:
                {
-                  id: -4,
+                  id: -5,
                   text: "Only flag questions as \"very low quality\" when they require immediate deletion. This just needs to be closed pending edits. You should have raised one of the \"needs improvement\" flags instead.",
                   prompt: "question is <b>not VLQ</b>, just needs to be closed",
                   title: "use when the flagger has raised a \"very low quality\" flag on a question when they should have voted/flagged to close it instead",
+                  limitTo: "question",
                   onlyFor: [ "very low quality" ],
                },
                notdupe:
                {
-                  id: -5,
+                  id: -6,
                   text: "If you disagree that a question is a duplicate, you should edit the question to clarify the difference and why those answers didn't solve the problem. See: https://meta.stackoverflow.com/q/252252",
                   prompt: "if you <b>disagree that a question is a duplicate</b>...",
                   title: "use when the flag is complaining to a moderator that the question was incorrectly closed as a duplicate",
+                  limitTo: "question",
                   onlyFor: [ "<custom>" ],
                },
                badmigration:
                {
-                  id: -6,
+                  id: -7,
                   text: "Questions should not be migrated away unless they are clearly (1) off-topic for the site where they were originally asked, (2) on-topic for the proposed target site, (3) of notably high quality.",
                   prompt: "this question should <b>not be migrated</b> elsewhere",
                   title: "use when the flag is requesting migration of a question that is unsuitable for migration",
+                  limitTo: "question",
                   onlyFor: [ "<custom>" ],
                },
                oldmigration:
                {
-                  id: -7,
+                  id: -8,
                   text: "Questions that are more than 60 days old cannot be migrated to other Stack Exchange sites.",
                   prompt: "questions <b>more than 60 days old</b> cannot be migrated",
                   title: "use when the flag is requesting migration of a question that is too old (> 60 days) to migrate",
+                  limitTo: "question",
                   onlyFor: [ "<custom>" ],
                },
                nodeletion:
                {
-                  id: -8,
+                  id: -9,
                   text: `We do not routinely delete questions that have received answers, as those answers may prove useful to future viewers. Please see: ${window.location.hostname}/help/what-to-do-instead-of-deleting-question`,
                   prompt: "we <b>do not routinely delete</b> questions that have received answers...",
                   title: "use when the flagger is requesting deletion of a question with answers that you don't think should be deleted",
+                  limitTo: "question",
                   onlyFor: [ "<custom>" ],
                },
                changeaccept:
                {
-                  id: -9,
+                  id: -10,
                   text: `Moderators cannot set or change the accepted answer. This can only be done by the original asker, and is optional. Please see: ${window.location.hostname}/help/accepted-answer`,
                   prompt: "moderators cannot set or change the <b>accepted answer</b>...",
                   title: "use when the flagger is requesting that the accepted answer be set/changed",
@@ -745,7 +762,7 @@
                },
                downvotewhine:
                {
-                  id: -10,
+                  id: -11,
                   text: 'Users can vote on posts as they see fit, whether up or down. Moderators do not intervene in legitimate voting. To see common reasons for downvoting, hover over the downvote arrow and read its tooltip.',
                   prompt: "users can vote on posts as they see fit... <b>mods do not intervene in legitimate voting</b>...",
                   title: "use when the flagger is whining about downvotes in general (and it is not a legitimate flag about vote fraud)",
@@ -753,7 +770,7 @@
                },
                downvoteuser:
                {
-                  id: -11,
+                  id: -12,
                   text: 'Users can vote on posts as they see fit, whether up or down, and votes are anonymous. You should not make assumptions about who downvoted a post; see: https://meta.stackoverflow.com/q/388686',
                   prompt: "users can vote on posts as they see fit... <b>do not assume who voted</b>...",
                   title: "use when the flagger is whining about downvotes from a specific user (and it is not a legitimate flag about vote fraud)",
@@ -761,7 +778,7 @@
                },
                nofraud:
                {
-                  id: -12,
+                  id: -13,
                   text: "Thank you for your flag. A moderator has carefully investigated the situation, but did not find any evidence of suspicious or targeted voting for/against your account.",
                   prompt: "<b>no evidence of suspicious or targeted voting</b> was found for/against your account",
                   title: "use when the flagger has asked for a targeted/fraudulent voting investigation, but that turned up nothing even remotely justifying a flag",
@@ -802,10 +819,22 @@
 
             for (const reason in reasons)
             {
+               if (flag && reasons[reason].limitTo)
+               {
+                  if (isQuestion && (reasons[reason].limitTo !== "question"))
+                  {
+                     continue;
+                  }
+                  if (!isQuestion && (reasons[reason].limitTo !== "answer"))
+                  {
+                     continue;
+                  }
+               }
+
                if (flag && reasons[reason].onlyFor)
                {
                   const flagMessage = flag.description.toLowerCase();
-                  if (reasons[reason].onlyFor == "<custom>")
+                  if (reasons[reason].onlyFor === "<custom>")
                   {
                      const standardFlags = [ "spam",
                                              "rude or abusive",
@@ -1183,7 +1212,7 @@
                   }
                })
 
-            flagContainer.append(RenderFlagItem(false, flag, postFlags.reviews));
+            flagContainer.append(RenderFlagItem(false, isQuestion, flag, postFlags.reviews));
          }
 
          if ((nonDisputedRedCount > 0) && (!tools.find(".flag-dispute-spam").length))
@@ -1209,7 +1238,7 @@
                                `);
          }
 
-         const totalFlags  = tools.data("totalflags");
+         const totalFlags   = tools.data("totalflags");
          const commentFlags = postFlags.commentFlags.reduce((acc, f) => acc + f.flaggers.length, 0);
 
          // this... really just hacks around incomplete information in the waffle bar
@@ -1290,13 +1319,13 @@
 
       function ShowCommentFlags(postId)
       {
-         const commentContainer = $("#comments-" + postId);
-         const postContainer = commentContainer.closest(".question, .answer");
-         const tools = postContainer.find(".mod-tools-post");
-         const postFlags = flagCache[postId];
+         const commentContainer       = $("#comments-" + postId);
+         const postContainer          = commentContainer.closest(".question, .answer");
+         const tools                  = postContainer.find(".mod-tools-post");
+         const postFlags              = flagCache[postId];
          let commentModToolsContainer = commentContainer.find(".mod-tools-comment-header");
 
-         if (!postFlags || ((!postFlags.commentFlags.length || !commentContainer.length) && !postFlags.assumeInactiveCommentFlagCount) )
+         if (!postFlags || ((!postFlags.commentFlags.length || !commentContainer.length) && !postFlags.assumeInactiveCommentFlagCount))
          {
             commentModToolsContainer.remove();
             return;
@@ -1345,8 +1374,8 @@
 
             if (!comment.length)  { continue; }
 
-            flagsShown += flag.flaggers.length;
-            const flagItem    = RenderFlagItem(true, flag);
+            flagsShown       += flag.flaggers.length;
+            const flagItem    = RenderFlagItem(true, null, flag);
             const flagDismiss = flagItem.find(".flag-dismiss-comment").remove();
             container.append(flagItem);
             if (!comment.find(".flag-dismiss-comment").length)
@@ -1362,7 +1391,7 @@
 
          const totalFlags = tools.data("totalflags");
 
-         let flagSummary  = [];
+         let flagSummary = [];
          if (activeCount > 0)
          {
             flagSummary.push(`<a class='show-all-flags' data-postid='${postFlags.postId}' title='load complete flag details'>${activeCount} active comment flags</a>`);
@@ -1383,7 +1412,7 @@
                          .html(flagSummary.join("; "));
       }
 
-      function RenderFlagItem(isComment, flag, reviews)
+      function RenderFlagItem(isComment, isQuestion, flag, reviews)
       {
          let flagItemHtml = `
              <li class="${flag.active ? 'active-flag' : 'o60'}">
@@ -1479,8 +1508,8 @@
                flagListItem.parent().find(".dismiss-flag-popup").remove();
 
                // Display new.
-               const choice = btn.is(".flag-dismiss-helpful") ? FlagFilter.tools.flagHelpfulUI(btn.parent())
-                                                              : FlagFilter.tools.flagDeclineUI(btn.parent(), flag);
+               const choice = btn.is(".flag-dismiss-helpful") ? FlagFilter.tools.flagHelpfulUI(btn.parent(), isQuestion)
+                                                              : FlagFilter.tools.flagDeclineUI(btn.parent(), isQuestion, flag);
                choice.then(function(dismissal)
                {
                   FlagFilter.tools.dismissFlag(postId, flagIds, dismissal.helpful, dismissal.declineId, dismissal.comment)
