@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.3.0
+// @version       1.4.0
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -27,8 +27,8 @@
 {
    'use strict';
 
-   const makeFlagInfoStickyAndFloatAbovePost = true;
-   const showTOCInWaffleBar                  = false;
+   const makeFlagInfoStickyAndFloatAbovePost = ((localStorage.getItem("flaaaaags.sticky") ?? 'true' ) === 'true');
+   const showTOCInWaffleBar                  = ((localStorage.getItem("flaaaaags.toc"   ) ?? 'false') === 'true');
 
    // Registered on Stack Apps in order to obtain an API key.
    // Client ID is 18434 (https://stackapps.com/apps/oauth/view/18434)
