@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.4.1
+// @version       1.4.2
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -846,27 +846,29 @@
                      }
                   }
 
+                  let include = false;
                   if (reasons[reason].onlyFor && flag)
                   {
                      const flagMessage = flag.description.toLowerCase();
-                     if (reasons[reason].onlyFor === "<custom>")
+                     if (reasons[reason].onlyFor.indexOf(flagMessage) !== -1)
+                     {
+                         include = true;
+                     }
+                     if (reasons[reason].onlyFor.indexOf("<custom>") !== -1)
                      {
                         const standardFlags = [ "spam",
                                                 "rude or abusive",
                                                 "not an answer",
                                                 "very low quality"
                                               ];
-                        if ((standardFlags.includes(flagMessage)) ||
-                            (flagMessage.endsWith(" (auto)")))
+                        if ((standardFlags.indexOf(flagMessage) === -1) &&
+                            (!flagMessage.endsWith(" (auto)")))
                         {
-                           continue;
+                           include = true;
                         }
                      }
-                     else if (reasons[reason].onlyFor.indexOf(flagMessage) === -1)
-                     {
-                        continue;
-                     }
                   }
+                  if (!include)  { continue; }
 
                   $(`<button class="s-btn s-btn__outlined s-btn__danger g-col -btn mark-flag-declined" type="button">${reasons[reason].prompt}</button>`)
                      .attr({value: reason, title: reasons[reason].title})
