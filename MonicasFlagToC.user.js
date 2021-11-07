@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.2.0
+// @version       1.3.0
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -183,6 +183,17 @@
       {
          margin: 0;
          color: var(--orange-900);
+      }
+
+      .mod-tools.mod-tools-post > h3 + button.s-popover--close
+      {
+         display: none;
+      }
+      .mod-tools.mod-tools-post > h3 + button.s-popover--close:hover,
+      .mod-tools.mod-tools-post > h3 + button.s-popover--close:active,
+      .mod-tools.mod-tools-post > h3 + button.s-popover--close:focus
+      {
+         background: var(--orange-100);
       }
 
       .mod-tools.mod-tools-post .revision-comment
@@ -588,55 +599,59 @@
 
          flagHelpfulUI: function(uiParent, isQuestion)
          {
-            const result      = $.Deferred();
-            const helpfulForm = $(`
-               <div class="dismiss-flags-popup">
-                  <form class="g-column _gutters" style="width: 100%;">
-                     <label class="f-label">Mark flag(s) as helpful because&hellip;</label>
-                     <div class="g-col g-row _gutters">
-                        <div class="g-col -input" style="width: 100%;">
-                            <textarea maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm"></textarea>
-                        </div>
-                        <span class="text-counter cool">Enter nothing at all, or up to 200 characters of cheerful guidance</span>
-                        <div class="g-col -btn">
-                          <button class="s-btn s-btn__filled s-btn__primary mark-flag-helpful" type="submit">Submit</button>
-                        </div>
-                     </div>
-                   </form>
-               </div>
-            `);
+            const result = $.Deferred();
 
-            uiParent.parent().find(".dismiss-flags-popup").remove();
-
-            helpfulForm
-               .insertAfter(uiParent)
-               .slideDown(250)
-               .find("button,input").first().focus();
-
-            const handleSubmitHelpful = (ev) =>
+            let helpfulForm = uiParent.nextAll(".dismiss-flags-popup.dismiss-flags-popup-helpful");
+            if (!helpfulForm.length)
             {
-               ev.preventDefault();
-               helpfulForm.remove();
-               result.resolve(
+               helpfulForm = $(`
+<div class="dismiss-flags-popup dismiss-flags-popup-helpful">
+   <form class="g-column _gutters" style="width: 100%;">
+      <label class="f-label">Mark flag(s) as helpful because&hellip;</label>
+      <div class="g-col g-row _gutters">
+         <div class="g-col -input" style="width: 100%;">
+             <textarea maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm s-textarea__sm"></textarea>
+         </div>
+         <span class="text-counter cool">Enter nothing at all, or up to 200 characters of cheerful guidance</span>
+         <div class="g-col -btn">
+           <button class="s-btn s-btn__filled s-btn__primary mark-flag-helpful" type="submit">Submit</button>
+         </div>
+      </div>
+    </form>
+</div>
+                               `).insertAfter(uiParent);
+
+               const handleSubmitHelpful = (ev) =>
                {
-                  helpful: true,
-                  declineId: 0,
-                  comment: helpfulForm.find("textarea").val()
-               });
-            }
-            helpfulForm.find("textarea")
-               .charCounter({min: 0, max: 200, target: helpfulForm.find(".text-counter")})
-               .on("keydown", function(ev)
-            {
-               // Make <Enter> key presses submit the form, not insert a new line.
-               // <Shift>+<Enter> still inserts a new line, not that it's useful to do so.
-               if ((ev.which === 13) && !ev.shiftKey)
-               {
-                  handleSubmitHelpful(ev);
+                  ev.preventDefault();
+                  helpfulForm.closest(".mod-tools-post").find("h3 + button.s-popover--close").fadeOut();
+                  helpfulForm.remove();
+                  result.resolve(
+                  {
+                     helpful:   true,
+                     declineId: 0,
+                     comment:   helpfulForm.find("textarea").val()
+                  });
                }
-            });
-            helpfulForm.find(".mark-flag-helpful").click(handleSubmitHelpful);
+               helpfulForm.find("textarea")
+                          .charCounter({min: 0, max: 200, target: helpfulForm.find(".text-counter")})
+                          .on("keydown", function(ev)
+               {
+                  // Make <Enter> key presses submit the form, not insert a new line.
+                  // <Shift>+<Enter> still inserts a new line, not that it's useful to do so.
+                  if ((ev.which === 13) && !ev.shiftKey)
+                  {
+                     handleSubmitHelpful(ev);
+                  }
+               });
+               helpfulForm.find(".mark-flag-helpful").click(handleSubmitHelpful);
+            }
 
+            const container = uiParent.closest(".mod-tools-post");
+            container.find(".dismiss-flags-popup").not(helpfulForm).slideUp(250);
+            container.find("h3 + button.s-popover--close").fadeIn();
+            helpfulForm.slideDown(250)
+                       .find("button,input").first().focus();
             return result.promise();
          },
 
@@ -791,127 +806,129 @@
             {
                reasons["lastEntered"] =
                {
-                  id: 0,
-                  text: lastDecline,
+                  id:     0,
+                  text:   lastDecline,
                   prompt: `<b><u>last-used reason:</u></b> ${lastDecline}`,
-                  title: "re-use the last custom reason that you typed to decline a flag"
+                  title:  "re-use the last custom reason that you typed to decline a flag"
                };
             }
 
             const result = $.Deferred();
 
-            const declineForm = $(`
-               <div class="dismiss-flags-popup">
-                  <form class="g-column _gutters">
-                     <label class="f-label">Decline flag(s) because&hellip;</label>
-                     <div class="g-col g-row _gutters">
-                        <div class="g-col -input" style="width: 100%;">
-                            <textarea maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm"></textarea>
-                        </div>
-                        <span class="text-counter cool">Enter at least 10 characters of righteous indignation</span>
-                        <div class="g-col -btn">
-                          <button class="s-btn s-btn__filled s-btn__danger mark-flag-declined" value="other" type="submit" disabled>Decline</button>
-                        </div>
-                     </div>
-                  </form>
-               </div>
-            `);
-
-            for (const reason in reasons)
+            let declineForm = uiParent.nextAll(".dismiss-flags-popup.dismiss-flags-popup-decline");
+            if (!declineForm.length)
             {
-               if (flag && reasons[reason].limitTo)
-               {
-                  if (isQuestion && (reasons[reason].limitTo !== "question"))
-                  {
-                     continue;
-                  }
-                  if (!isQuestion && (reasons[reason].limitTo !== "answer"))
-                  {
-                     continue;
-                  }
-               }
+               declineForm = $(`
+<div class="dismiss-flags-popup dismiss-flags-popup-decline">
+   <form class="g-column _gutters">
+      <label class="f-label">Decline flag(s) because&hellip;</label>
+      <div class="g-col g-row _gutters">
+         <div class="g-col -input" style="width: 100%;">
+             <textarea maxlength="200" placeholder="optional feedback (visible to the user)" class="s-input s-input__sm s-textarea__sm"></textarea>
+         </div>
+         <span class="text-counter cool">Enter at least 10 characters of righteous indignation</span>
+         <div class="g-col -btn">
+           <button class="s-btn s-btn__filled s-btn__danger mark-flag-declined" value="other" type="submit" disabled>Decline</button>
+         </div>
+      </div>
+   </form>
+</div>
+                               `).insertAfter(uiParent);
 
-               if (flag && reasons[reason].onlyFor)
+               for (const reason in reasons)
                {
-                  const flagMessage = flag.description.toLowerCase();
-                  if (reasons[reason].onlyFor === "<custom>")
+                  if (reasons[reason].limitTo)
                   {
-                     const standardFlags = [ "spam",
-                                             "rude or abusive",
-                                             "not an answer",
-                                             "very low quality"
-                                           ];
-                     if ((standardFlags.includes(flagMessage)) ||
-                         (flagMessage.endsWith(" (auto)")))
+                     if (( isQuestion && (reasons[reason].limitTo !== "question")) ||
+                         (!isQuestion && (reasons[reason].limitTo !== "answer"  )))
                      {
                         continue;
                      }
                   }
-                  else if (reasons[reason].onlyFor.indexOf(flagMessage) == -1)
+
+                  if (reasons[reason].onlyFor && flag)
                   {
-                     continue;
+                     const flagMessage = flag.description.toLowerCase();
+                     if (reasons[reason].onlyFor === "<custom>")
+                     {
+                        const standardFlags = [ "spam",
+                                                "rude or abusive",
+                                                "not an answer",
+                                                "very low quality"
+                                              ];
+                        if ((standardFlags.includes(flagMessage)) ||
+                            (flagMessage.endsWith(" (auto)")))
+                        {
+                           continue;
+                        }
+                     }
+                     else if (reasons[reason].onlyFor.indexOf(flagMessage) == -1)
+                     {
+                        continue;
+                     }
                   }
+
+                  $(`<button class="s-btn s-btn__outlined s-btn__danger g-col -btn mark-flag-declined" type="button">${reasons[reason].prompt}</button>`)
+                     .attr({value: reason, title: reasons[reason].title})
+                     .insertAfter(declineForm.find("form>label,form>button:last").last());
                }
 
-               $(`<button class="s-btn s-btn__outlined s-btn__danger g-col -btn mark-flag-declined" type="button">${reasons[reason].prompt}</button>`)
-                  .attr({value: reason, title: reasons[reason].title})
-                  .insertAfter(declineForm.find("form>label,form>button:last").last());
+               const handleSubmitDecline = (ev) =>
+               {
+                  ev.preventDefault();
+
+                  const button = ev.target.closest('.mark-flag-declined');
+                  const value  = button?.value;
+                  let   declineId;
+                  let   declineText;
+                  if (value && reasons[value])
+                  {
+                     declineId   = Math.max(reasons[value].id, 0);
+                     declineText = reasons[value].text;
+                  }
+                  else
+                  {
+                     // User typed in a custom reason.
+                     declineId   = 0;
+                     declineText = customDeclineField.val();
+                     localStorage["flaaaaags.last-decline"] = declineText;
+                  }
+
+                  declineForm.closest(".mod-tools-post").find("h3 + button.s-popover--close").fadeOut();
+                  declineForm.remove();
+
+                  result.resolve(
+                  {
+                     helpful:   false,
+                     declineId: declineId,
+                     comment:   declineText
+                  });
+               }
+               const customDeclineField = declineForm.find("textarea")
+                  .focus()
+                  .charCounter({min: 10, max: 200, target: declineForm.find(".text-counter")})
+                  .on("input", function()
+                  {
+                     const text = customDeclineField.val();
+                     declineForm.find(".mark-flag-declined[value=other]").prop("disabled", text.length < 10);
+                  })
+                  .on("keydown", function(ev)
+                  {
+                     // Make <Enter> key presses submit the form, not insert a new line.
+                     // <Shift>+<Enter> still inserts a new line, not that it's useful to do so.
+                     if ((ev.which === 13) && !ev.shiftKey)
+                     {
+                        handleSubmitDecline(ev);
+                     }
+                  });
+               declineForm.find(".mark-flag-declined").click(handleSubmitDecline);
             }
 
-            uiParent.parent().find(".dismiss-flags-popup").remove();
-
-            declineForm
-               .insertAfter(uiParent)
-               .slideDown(250)
-
-            const handleSubmitDecline = (ev) =>
-            {
-               ev.preventDefault();
-
-               const value = ev.target.closest('.mark-flag-declined').value;
-               let   declineId;
-               let   declineText;
-               if (reasons[value])
-               {
-                  declineId   = Math.max(reasons[value].id, 0);
-                  declineText = reasons[value].text;
-               }
-               else
-               {
-                  // User typed in a custom reason.
-                  declineId   = 0;
-                  declineText = customDeclineField.val();
-                  localStorage["flaaaaags.last-decline"] = declineText;
-               }
-
-               declineForm.remove();
-
-               result.resolve(
-               {
-                  helpful:   false,
-                  declineId: declineId,
-                  comment:   declineText
-               });
-            }
-            const customDeclineField = declineForm.find("textarea")
-               .focus()
-               .charCounter({min: 10, max: 200, target: declineForm.find(".text-counter")})
-               .on("input", function()
-               {
-                  const text = customDeclineField.val();
-                  declineForm.find(".mark-flag-declined[value=other]").prop("disabled", text.length < 10);
-               })
-               .on("keydown", function(ev)
-               {
-                  // Make <Enter> key presses submit the form, not insert a new line.
-                  // <Shift>+<Enter> still inserts a new line, not that it's useful to do so.
-                  if ((ev.which === 13) && !ev.shiftKey)
-                  {
-                     handleSubmitDecline(ev);
-                  }
-               });
-            declineForm.find(".mark-flag-declined").click(handleSubmitDecline);
-
+            const container = uiParent.closest(".mod-tools-post");
+            container.find(".dismiss-flags-popup").not(declineForm).slideUp(250);
+            container.find("h3 + button.s-popover--close").fadeIn();
+            declineForm.slideDown(250)
+                       .find("textarea").first().focus();
             return result.promise();
          },
 
@@ -1115,7 +1132,14 @@
             //       (i.e., the best kind).
             const tools = $(`
 <div class="s-card bs-md mod-tools mod-tools-post" data-totalflags="${totalFlags}">
-  <h3 class='flag-summary'><a class='show-all-flags' data-postid='${postId}'>${totalFlags} inactive post flags (click to load)</a></h3>
+  <h3 class='flag-summary'>
+     <a class='show-all-flags' data-postid='${postId}'>${totalFlags} inactive post flags (click to load)</a>
+  </h3>
+  <button class="ps-absolute t0 r0 s-popover--close s-btn s-btn__muted s-btn__icon" aria-label="Collapse" title="collapse flag dismissal interface">
+     <svg aria-hidden="true" class="svg-icon iconArrowDoubleUp native js-svg" width="18" height="18" viewBox="0 0 18 18">
+        <path d="m16.01 14.62-1.4 1.4L9 10.45l-5.59 5.59-1.4-1.41 7-7 7 7v-.01Zm0-5-1.4 1.4L9 5.45l-5.59 5.59-1.4-1.41 7-7 7 7v-.01Z"></path>
+     </svg>
+  </button>
   <ul class="flags">
   </ul>
   <div class="mod-actions">
@@ -1131,6 +1155,13 @@
             {
                tools.insertBefore(postContainer.find("div:has(>.comments)"));
             }
+
+            tools.find("h3 + button.s-popover--close").click(function()
+            {
+               const btn = $(this);
+               btn.closest(".mod-tools-post").find(".dismiss-flags-popup").slideUp(250);
+               btn.fadeOut();
+            });
 
             if (flags)
             {
@@ -1508,12 +1539,17 @@
                flagListItem.parent().find(".dismiss-flag-popup").remove();
 
                // Display new.
-               const choice = btn.is(".flag-dismiss-helpful") ? FlagFilter.tools.flagHelpfulUI(btn.parent(), isQuestion)
-                                                              : FlagFilter.tools.flagDeclineUI(btn.parent(), isQuestion, flag);
+               const choice = btn.is(".flag-dismiss-helpful")
+                                ? FlagFilter.tools.flagHelpfulUI(btn.parent(), isQuestion)
+                                : FlagFilter.tools.flagDeclineUI(btn.parent(), isQuestion, flag);
                choice.then(function(dismissal)
                {
                   FlagFilter.tools.dismissFlag(postId, flagIds, dismissal.helpful, dismissal.declineId, dismissal.comment)
-                     .done(function(){ flagListItem.hide('medium'); RefreshFlagsForPost(postId); });
+                     .done(function()
+                           {
+                              flagListItem.hide('medium');
+                              RefreshFlagsForPost(postId);
+                           });
                });
             });
          }
