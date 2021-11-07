@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.4.0
+// @version       1.4.1
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -35,7 +35,7 @@
    const API_KEY = 'YVKZM9)1ozBP8NH)hlPj8Q((';
 
    // Check that this is a Stack Exchange site, and that the user is a moderator.
-   if (typeof StackExchange == "undefined" || !StackExchange.options || !StackExchange.options.user || !StackExchange.options.user.isModerator)
+   if (typeof StackExchange === "undefined" || !StackExchange.options || !StackExchange.options.user || !StackExchange.options.user.isModerator)
    {
       return;
    }
@@ -862,7 +862,7 @@
                            continue;
                         }
                      }
-                     else if (reasons[reason].onlyFor.indexOf(flagMessage) == -1)
+                     else if (reasons[reason].onlyFor.indexOf(flagMessage) === -1)
                      {
                         continue;
                      }
@@ -889,8 +889,8 @@
                   else
                   {
                      // User typed in a custom reason.
-                     declineId   = 0;
-                     declineText = customDeclineField.val();
+                     declineId                              = 0;
+                     declineText                            = customDeclineField.val();
                      localStorage["flaaaaags.last-decline"] = declineText;
                   }
 
@@ -947,7 +947,7 @@
                   sites.forEach(function(site)
                   {
                      const siteBaseHost = site.site_url.replace(/^https?:\/\//, '');
-                     if (siteBaseHost == window.location.host) return;
+                     if (siteBaseHost === window.location.host) return;
 
                      const siteBaseHostStripped = siteBaseHost.replace('.com', '');
 
@@ -967,11 +967,11 @@
 
             function loadMigrationSites()
             {
-               const ret = $.Deferred();
-               const cachekey = "flaaaaags.site-cache";
+               const ret           = $.Deferred();
+               const cachekey      = "flaaaaags.site-cache";
                let cacheExpiration = new Date();
-               cacheExpiration = cacheExpiration.setHours(cacheExpiration.getHours()-24);
-               let siteCache = localStorage.getItem(cachekey);
+               cacheExpiration     = cacheExpiration.setHours(cacheExpiration.getHours() - 24);
+               let siteCache       = localStorage.getItem(cachekey);
                if (siteCache)
                {
                   siteCache = JSON.parse(siteCache);
@@ -985,7 +985,7 @@
                return $.get(`https://api.stackexchange.com/2.2/sites?key=${API_KEY}&pagesize=500`)
                   .then(function(data)
                   {
-                     let sites = [];
+                     let   sites     = [];
                      const siteArray = data.items;
                      if (siteArray && siteArray.length && siteArray[0].name)
                      {
@@ -1264,8 +1264,8 @@
          if (activeCount > 0)
          {
             modActions.prepend(`
-                               <button class="flag-dismiss-all-decline s-btn s-btn__outlined s-btn__danger" type="button" title="mark all pending flags as declined">Decline all&hellip;</button>
-                               <button class="flag-dismiss-all-helpful s-btn s-btn__outlined" type="button" title="mark all pending flags as helpful">Helpful all&hellip;</button>
+<button class="flag-dismiss-all-decline s-btn s-btn__outlined s-btn__danger" type="button" title="mark all pending flags as declined">Decline all&hellip;</button>
+<button class="flag-dismiss-all-helpful s-btn s-btn__outlined" type="button" title="mark all pending flags as helpful">Helpful all&hellip;</button>
                                `);
          }
 
@@ -1575,12 +1575,12 @@
                const post        = $(".answer[data-answerid='"+postId+"'],.question[data-questionid='"+postId+"']");
                const userLink    = post.find(".user-details[itemprop='author'] a[href^='/users/']:first,.user-details #history-"+postId);
                let   postType    = post.is(".answer") ? "answer" : "question";
-               let   url         = (postType == 'question' ? '#question' : "#" + postId);
-               let   attribution = (userLink.is('#history-'+postId) ? '(wiki)' : "by " + userLink.text());
-               if (!post.length) // handle flags spanning multiple pages of answers
+               let   url         = (postType === "question" ? "#question" : "#" + postId);
+               let   attribution = (userLink.is("#history-" + postId) ? "(wiki)" : "by " + userLink.text());
+               if (!post.length)  // handle flags spanning multiple pages of answers
                {
                   postType    = "answer";
-                  url         = ('/a/' + postId);
+                  url         = ("/a/" + postId);
                   attribution = "on another page";
                }
                const flagSummaries = SummarizeFlags(flagCache[postId], 3).map(function(summary)
@@ -1591,7 +1591,7 @@
                   {
                      ret.addClass("inactive");
                   }
-                  if (summary.type.toLowerCase() == 'comment')
+                  if (summary.type.toLowerCase() === 'comment')
                   {
                      $("<a>").attr("href", (/#/.test(url) ? '' : url) + "#comments-"+postId).text("(comment) " + summary.description).appendTo(ret);
                   }
@@ -1779,7 +1779,7 @@
                   }, {}) );
             }
 
-            ret.flags = consolidate(ret.flags);
+            ret.flags        = consolidate(ret.flags);
             ret.commentFlags = consolidate(ret.commentFlags);
 
             return ret;
