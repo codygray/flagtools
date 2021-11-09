@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.4.3
+// @version       1.4.4
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -846,29 +846,29 @@
                      }
                   }
 
-                  let include = true;
                   if (reasons[reason].onlyFor && flag)
                   {
                      const flagMessage = flag.description.toLowerCase();
-                     if (reasons[reason].onlyFor.indexOf(flagMessage) === -1)
-                     {
-                         include = false;
-                     }
+                     let   tempReasons = reasons[reason].onlyFor;
                      if (reasons[reason].onlyFor.indexOf("<custom>") !== -1)
                      {
-                        const standardFlags = [ "spam",
-                                                "rude or abusive",
-                                                "not an answer",
-                                                "very low quality"
-                                              ];
-                        if ((standardFlags.indexOf(flagMessage) !== -1) ||
-                            (flagMessage.endsWith(" (auto)")))
+                        const standardFlags  = [ "spam",
+                                                 "rude or abusive",
+                                                 "not an answer",
+                                                 "very low quality"
+                                               ];
+                        const isStandardFlag = ((standardFlags.indexOf(flagMessage) !== -1) ||
+                                                (flagMessage.endsWith(" (auto)")));
+                        if (!isStandardFlag)
                         {
-                           include = false;
+                           tempReasons.splice(tempReasons.indexOf("<custom>"), 1, flagMessage);
                         }
                      }
+                     if (reasons[reason].onlyFor.indexOf(flagMessage) === -1)
+                     {
+                        continue;
+                     }
                   }
-                  if (!include)  { continue; }
 
                   $(`<button class="s-btn s-btn__outlined s-btn__danger g-col -btn mark-flag-declined" type="button">${reasons[reason].prompt}</button>`)
                      .attr({value: reason, title: reasons[reason].title})
