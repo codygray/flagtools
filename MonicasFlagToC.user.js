@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.4.4
+// @version       1.4.5
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -643,6 +643,13 @@
                   {
                      handleSubmitHelpful(ev);
                   }
+
+                  // Make <Esc> key presses clear the textarea and hide the dismissal controls.
+                  if (ev.which === 27)
+                  {
+                     declineForm.closest(".mod-tools-post").find("h3 + button.s-popover--close").click();
+                     this.value = "";
+                  }
                });
                helpfulForm.find(".mark-flag-helpful").click(handleSubmitHelpful);
             }
@@ -921,6 +928,13 @@
                      if ((ev.which === 13) && !ev.shiftKey)
                      {
                         handleSubmitDecline(ev);
+                     }
+
+                     // Make <Esc> key presses clear the textarea and hide the dismissal controls.
+                     if (ev.which === 27)
+                     {
+                        declineForm.closest(".mod-tools-post").find("h3 + button.s-popover--close").click();
+                        this.value = "";
                      }
                   });
                declineForm.find(".mark-flag-declined").click(handleSubmitDecline);
