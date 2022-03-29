@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.4.5
+// @version       1.4.6
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -716,7 +716,7 @@
                {
                   id: -3,
                   text: "While this answer is of extremely low quality and needs to be deleted, it is not spam. Please review the list of flag options that are available to you, and choose a more appropriate flag next time.",
-                  prompt: "while this answer is of extremely low quality and needs to be closed, it is <b>not spam</b>...",
+                  prompt: "while this answer is of extremely low quality and needs to be deleted, it is <b>not spam</b>...",
                   title: "use when the flagger has raised a spam flag on NAA/VLQ (recognizes the legitimacy of their concerns, but gently corrects the specific flag choice)",
                   limitTo: "answer",
                   onlyFor: [ "spam" ],
