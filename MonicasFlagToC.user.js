@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.5.1
+// @version       1.5.2
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -987,10 +987,10 @@
                         {
                            const siteBaseHostRegexp         = siteBaseHost      .replace('.com', '')
                                                                                 .replace('stackexchange', 's(?:tack)?[\\W_]*e(?:xchange)?')
-                                                                                .replace('stackoverflow', 's(?:tack)?[\\W_]*o(?:overflow)?')
+                                                                                .replace('stackoverflow', 's(?:tack)?[\\W_]*o(?:verflow)?')
                                                                                 .replaceAll('.', '[\\W_]*');
                            const siteBaseHostStrippedRegexp = siteBaseHostRegexp.replace('[\\W_]*s(?:tack)?[\\W_]*e(?:xchange)?', '')
-                                                                                .replace('[\\W_]*s(?:tack)?[\\W_]*o(?:overflow)?', '')
+                                                                                .replace('[\\W_]*s(?:tack)?[\\W_]*o(?:verflow)?', '')
                                                                                 .toUpperCase();
                            const strippedRegexpFlags        = (siteBaseHostStrippedRegexp !== 'OR') ? 'i' : '';
                            if (RegExp(`\\b${site.name.replaceAll('&amp;', '(?:&|and)').replaceAll(' ', '\\s?')}\\b`, 'i').test(flagText) ||
