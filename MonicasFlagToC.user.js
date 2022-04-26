@@ -1,27 +1,26 @@
 // ==UserScript==
 // @name          Monica's Flag ToC
+// @namespace     https://github.com/codygray/flagtools/
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @namespace     https://github.com/codygray/flagtools/
-// @version       1.5.2
+// @version       1.5.3
+// @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
-// @include       http*://stackoverflow.com/questions/*
-// @include       http*://*.stackoverflow.com/questions/*
-// @include       http*://askubuntu.com/questions/*
-// @include       http*://*.askubuntu.com/questions/*
-// @include       http*://superuser.com/questions/*
-// @include       http*://*.superuser.com/questions/*
-// @include       http*://serverfault.com/questions/*
-// @include       http*://*.serverfault.com/questions/*
-// @include       http*://mathoverflow.net/questions/*
-// @include       http*://*.mathoverflow.net/questions/*
-// @include       http*://*.stackexchange.com/questions/*
-// @include       http*://local.mse.com/questions/*
-// @exclude       http*://chat.*.com/*
+//
+// @match         *://*.stackoverflow.com/questions/*
+// @match         *://*.stackexchange.com/questions/*
+// @match         *://*.superuser.com/questions/*
+// @match         *://*.serverfault.com/questions/*
+// @match         *://*.askubuntu.com/questions/*
+// @match         *://*.mathoverflow.net/questions/*
+// @match         *://local.mse.com/questions/*
 // ==/UserScript==
+/* eslint-disable no-multi-spaces */
+/* global $:readonly              */  // SO/SE sites always provides jQuery, free-of-charge
+/* global StackExchange:readonly  */  // this global object always exists on SO/SE domains
 
 (function()
 {
@@ -411,7 +410,7 @@
    // Generally-useful moderation routines
    function initTools()
    {
-      FlagFilter.tools = $.extend({}, FlagFilter.tools,
+      window.FlagFilter.tools = $.extend({}, window.FlagFilter.tools,
       {
          reopenQuestion: function(postId)
          {
@@ -474,7 +473,7 @@
 
          migrateTo: function(postId, destinationHost)
          {
-            return FlagFilter.tools.closeQuestion(postId, 'SiteSpecific', 2, null, destinationHost);
+            return window.FlagFilter.tools.closeQuestion(postId, 'SiteSpecific', 2, null, destinationHost);
          },
 
          annotateUser: function(userId, annotation)
@@ -647,7 +646,7 @@
                   // Make <Esc> key presses clear the textarea and hide the dismissal controls.
                   if (ev.which === 27)
                   {
-                     declineForm.closest(".mod-tools-post").find("h3 + button.s-popover--close").click();
+                     helpfulForm.closest(".mod-tools-post").find("h3 + button.s-popover--close").click();
                      this.value = "";
                   }
                });
@@ -811,7 +810,7 @@
             const lastDecline = localStorage["flaaaaags.last-decline"];
             if (lastDecline)
             {
-               reasons["lastEntered"] =
+               reasons.lastEntered =
                {
                   id:     0,
                   text:   lastDecline,
@@ -1085,7 +1084,7 @@
             const flagListItem = flagInfo.parent();
             if (!commentId || !flagListItem.length)  { return; }
 
-            FlagFilter.tools.dismissAllCommentFlags(commentId, flagIds)
+            window.FlagFilter.tools.dismissAllCommentFlags(commentId, flagIds)
                .done(function() { flagListItem.hide('medium'); dismissLink.hide(); /* annoying - don't do this RefreshFlagsForPost(postId); */  });
          })
 
@@ -1095,11 +1094,11 @@
             const btn    = $(this);
             const post   = btn.parents(".question, .answer");
             const postId = post.data("questionid") || post.data("answerid");
-            const choice = btn.is(".flag-dismiss-all-helpful") ? FlagFilter.tools.flagHelpfulUI(btn.parent())
-                                                               : FlagFilter.tools.flagDeclineUI(btn.parent());
+            const choice = btn.is(".flag-dismiss-all-helpful") ? window.FlagFilter.tools.flagHelpfulUI(btn.parent())
+                                                               : window.FlagFilter.tools.flagDeclineUI(btn.parent());
             choice.then(function(dismissal)
             {
-               FlagFilter.tools.dismissAllFlags(postId, dismissal.helpful, dismissal.declineId, dismissal.comment)
+               window.FlagFilter.tools.dismissAllFlags(postId, dismissal.helpful, dismissal.declineId, dismissal.comment)
                   .done(function()
                   {
                      post.find('tr.mod-tools').slideUp();
@@ -1242,7 +1241,7 @@
                ++nonDisputedRedCount;
             }
 
-            FlagFilter.tools.predictMigrationDest(flag.description)
+            window.FlagFilter.tools.predictMigrationDest(flag.description)
                .done(function(site)
                {
                   // If we have a destination site name, this is a question, and
@@ -1261,7 +1260,7 @@
                               {
                                  if (iRetry > 2)  { return; }
 
-                                 FlagFilter.tools.migrateTo(questionId, site.baseHostAddress)
+                                 window.FlagFilter.tools.migrateTo(questionId, site.baseHostAddress)
                                     .fail(() =>
                                     {
                                        alert("Failed to perform migration.");
@@ -1272,7 +1271,7 @@
                                        if ((xhr.Success === false) &&
                                            (xhr.Message === "This question is already closed - please refresh the page"))
                                        {
-                                          return FlagFilter.tools.reopenQuestion(questionId)
+                                          return window.FlagFilter.tools.reopenQuestion(questionId)
                                                     .fail(() =>
                                                     {
                                                        alert("Failed to reopen question (cannot migrate a closed question).");
@@ -1304,7 +1303,7 @@
             {
                if (confirm("This will undelete the post, remove all penalties against the author, and dispute ALL rude/abusive and spam flags EVER raised on it.\n\nAre you sure?"))
                {
-                  FlagFilter.tools.disputeSpamAbusiveFlags(postFlags.postId);
+                  window.FlagFilter.tools.disputeSpamAbusiveFlags(postFlags.postId);
                }
             });
          }
@@ -1380,12 +1379,12 @@
             {
                reviews += `
                <li>
-                     <span title="${FlagFilter.tools.formatISODate(task.creationDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(task.creationDate)}</span>
+                     <span title="${window.FlagFilter.tools.formatISODate(task.creationDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(task.creationDate)}</span>
                      <a href="${task.url}">${task.type}</a>
                `;
                if ( task.result )
                   reviews += `<span>ended
-                     <span title="${FlagFilter.tools.formatISODate(task.resultDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(task.resultDate)}</span>:
+                     <span title="${window.FlagFilter.tools.formatISODate(task.resultDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(task.resultDate)}</span>:
                   ${task.result}</span>`;
                else
                   reviews += "<i>pending...</i>";
@@ -1532,7 +1531,7 @@
             $("<div class='flag-outcome'><i></i></div>")
                .find("i").text(flag.result).end()
                .append(flag.resultUser ? `<span> &ndash; </span><a href="/users/${flag.resultUser.userId}" class="flag-creation-user comment-user">${flag.resultUser.name}${flag.resultUser.isMod ? '<span class="mod-flair mtn2" title="Moderator">♦</span>' : ''}</a>` : '<span> &ndash; </span>')
-               .append(`<span class="flag-creation-date comment-date" dir="ltr"> <span title="${FlagFilter.tools.formatISODate(flag.resultDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(flag.resultDate)}</span></span>`)
+               .append(`<span class="flag-creation-date comment-date" dir="ltr"> <span title="${window.FlagFilter.tools.formatISODate(flag.resultDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(flag.resultDate)}</span></span>`)
                .appendTo(flagItem);
          }
          else if (reviews && IsReviewFlag(flag))
@@ -1542,11 +1541,11 @@
             {
                if (task.result)
                {
-                  $(`<div class='flag-outcome'><a href="${task.url}">reviewed</a>: <i>${task.result}</i> <span title="${FlagFilter.tools.formatISODate(task.resultDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(task.resultDate)}</span></div>`).appendTo(flagItem);
+                  $(`<div class='flag-outcome'><a href="${task.url}">reviewed</a>: <i>${task.result}</i> <span title="${window.FlagFilter.tools.formatISODate(task.resultDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(task.resultDate)}</span></div>`).appendTo(flagItem);
                }
                else
                {
-                  $(`<div class='flag-outcome'><a href="${task.url}">in review</a> since <span title="${FlagFilter.tools.formatISODate(task.creationDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(task.creationDate)}</span></div>`).appendTo(flagItem);
+                  $(`<div class='flag-outcome'><a href="${task.url}">in review</a> since <span title="${window.FlagFilter.tools.formatISODate(task.creationDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(task.creationDate)}</span></div>`).appendTo(flagItem);
                }
             }
          }
@@ -1565,7 +1564,7 @@
                      .html()
                   : '';
                const flagDate = user.flagCreationDate.getTime()
-                  ? `<span class="flag-creation-date comment-date" dir="ltr"><span title="${FlagFilter.tools.formatISODate(user.flagCreationDate)}" class="relativetime-clean">${FlagFilter.tools.formatDate(user.flagCreationDate)}</span></span>`
+                  ? `<span class="flag-creation-date comment-date" dir="ltr"><span title="${window.FlagFilter.tools.formatISODate(user.flagCreationDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(user.flagCreationDate)}</span></span>`
                   : '';
 
                flaggerNames.push( userLink + ' ' + flagDate );
@@ -1590,11 +1589,11 @@
 
                // Display new.
                const choice = btn.is(".flag-dismiss-helpful")
-                                ? FlagFilter.tools.flagHelpfulUI(btn.parent(), isQuestion)
-                                : FlagFilter.tools.flagDeclineUI(btn.parent(), isQuestion, flag);
+                                ? window.FlagFilter.tools.flagHelpfulUI(btn.parent(), isQuestion)
+                                : window.FlagFilter.tools.flagDeclineUI(btn.parent(), isQuestion, flag);
                choice.then(function(dismissal)
                {
-                  FlagFilter.tools.dismissFlag(postId, flagIds, dismissal.helpful, dismissal.declineId, dismissal.comment)
+                  window.FlagFilter.tools.dismissFlag(postId, flagIds, dismissal.helpful, dismissal.declineId, dismissal.comment)
                      .done(function()
                            {
                               flagListItem.hide('medium');
@@ -1701,7 +1700,7 @@
 
       function LoadAllFlags(postId)
       {
-         return LoadTimeline().then(ParseTimeline).then( af => flagCache[postId] = af );
+         return LoadTimeline().then(ParseTimeline).then( af => (flagCache[postId] = af) );
 
          function LoadTimeline()
          {
@@ -1724,15 +1723,15 @@
             const reviewList         = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr[data-eventtype=review]"));
             const deletionList       = Array.from(dom.querySelectorAll(".post-timeline .event-rows tr.deleted-event[data-eventid]+tr"));
             const commentMap         = flaggedCommentList.reduce(function(acc, fc)
-               {
-                  const flagIds   = fc.dataset.flagIds.split(';');
-                  const parentRow = fc.closest("tr[data-eventtype=comment]");
-                  for (const id of flagIds)
-                  {
-                     acc[id] = parentRow;
-                  }
-                  return acc;
-               }, {});
+                                       {
+                                          const flagIds   = fc.dataset.flagIds.split(';');
+                                          const parentRow = fc.closest("tr[data-eventtype=comment]");
+                                          for (const id of flagIds)
+                                          {
+                                             acc[id] = parentRow;
+                                          }
+                                          return acc;
+                                       }, {});
             for (const row of flagList)
             {
                const id          = +row.dataset.eventid;
@@ -1755,19 +1754,17 @@
                   description: (description && description.innerHTML.trim()) || (flagType && flagType.textContent.trim()) || "",
                   active:      !deleted,
                   result:      (result && result.textContent.trim()) || "",
-                  resultDate:  deleted ? FlagFilter.tools.parseISODate(deleted.title) : null,
-                  resultUser:
-                  {
-                     userId: handler ? +handler.href.match(/\/users\/([-\d]+)/)[1] : -1,
-                     name:  (handler && handler.textContent.trim()) || "",
-                     isMod: isMod
-                  },
-                  flaggers: [
-                  {
-                     userId:           flagger ? +flagger.href.match(/\/users\/([-\d]+)/)[1] : -1,
-                     name:             (flagger && flagger.textContent.trim()) || "",
-                     flagCreationDate: FlagFilter.tools.parseISODate(created.title)
-                  }]
+                  resultDate:  deleted ? window.FlagFilter.tools.parseISODate(deleted.title) : null,
+                  resultUser:  {
+                                  userId: handler ? +handler.href.match(/\/users\/([-\d]+)/)[1] : -1,
+                                  name:  (handler && handler.textContent.trim()) || "",
+                                  isMod: isMod
+                               },
+                  flaggers:   [{
+                                  userId:           flagger ? +flagger.href.match(/\/users\/([-\d]+)/)[1] : -1,
+                                  name:             (flagger && flagger.textContent.trim()) || "",
+                                  flagCreationDate: window.FlagFilter.tools.parseISODate(created.title)
+                              }],
                };
 
                if (eventType.textContent.trim() === "comment flag")
@@ -1795,13 +1792,12 @@
                const completed  = deleteRow && deleteRow.querySelector(":scope>td.creation-date span.relativetime");
                const resultType = deleteRow && deleteRow.querySelector(":scope>td.event-type+td>span");
                const result     = deleteRow && deleteRow.querySelector(":scope>td.event-comment>span");
-
                return {
                   id:           id,
-                  creationDate: FlagFilter.tools.parseISODate(created.title),
+                  creationDate: window.FlagFilter.tools.parseISODate(created.title),
                   type:         (reviewType && reviewType.textContent.trim()) || "",
                   url:          reviewType && reviewType.href,
-                  resultDate:   completed ? FlagFilter.tools.parseISODate(completed.title) : null,
+                  resultDate:   completed ? window.FlagFilter.tools.parseISODate(completed.title) : null,
                   result:       (result && result.textContent.trim()) || (resultType && resultType.textContent.trim())
                };
             });
@@ -1866,7 +1862,7 @@
                                  return {
                                     userId:           userId && userId.length > 0 ? +userId[1] : null,
                                     name:             this.textContent,
-                                    flagCreationDate: FlagFilter.tools.parseISODate($(this)
+                                    flagCreationDate: window.FlagFilter.tools.parseISODate($(this)
                                        .parent()
                                        .nextAll(".relativetime:first, span[title]").first()
                                        .attr('title'), new Date(0))
@@ -1892,7 +1888,7 @@
                                  return {
                                     userId:           userId && userId.length > 0 ? +userId[1] : null,
                                     name:             this.textContent,
-                                    flagCreationDate: FlagFilter.tools.parseISODate($(this)
+                                    flagCreationDate: window.FlagFilter.tools.parseISODate($(this)
                                        .parent()
                                        .nextAll(".relativetime:first, span[title]").first()
                                        .attr('title'), new Date(0))
