@@ -4,7 +4,7 @@
 // @author        Cody Gray
 // @author        Shog9
 // @namespace     https://github.com/codygray/flagtools/
-// @version       1.4.6
+// @version       1.5.0
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
@@ -716,7 +716,7 @@
                {
                   id: -3,
                   text: "While this answer is of extremely low quality and needs to be deleted, it is not spam. Please review the list of flag options that are available to you, and choose a more appropriate flag next time.",
-                  prompt: "while this answer is of extremely low quality and needs to be deleted, it is <b>not spam</b>...",
+                  prompt: "while this answer is of extremely low quality and needs to be closed, it is <b>not spam</b>...",
                   title: "use when the flagger has raised a spam flag on NAA/VLQ (recognizes the legitimacy of their concerns, but gently corrects the specific flag choice)",
                   limitTo: "answer",
                   onlyFor: [ "spam" ],
@@ -953,32 +953,60 @@
             return loadMigrationSites()
                .then(function(sites)
                {
-                  let ret = { baseHostAddress: '', name: '' };
+                  let result = { baseHostAddress: '', name: '', audience: '', icon: '' };
 
-                  if (!/[a-zA-Z]+.stack(exchange|overflow)(.com)?|belongs (on|to)|move|migrat|ask|fit|best|better/i.test(flagText))
+                  if (/[a-zA-Z]+.stack(?:exchange|overflow)(?:.com)?|ask|be(?:long|tter|st| on)|m(?:igrat|ove)|fit/i.test(flagText))
                   {
-                     return ret;
-                  }
-
-                  sites.forEach(function(site)
-                  {
-                     const siteBaseHost = site.site_url.replace(/^https?:\/\//, '');
-                     if (siteBaseHost === window.location.host) return;
-
-                     const siteBaseHostStripped = siteBaseHost.replace('.com', '');
-
-                     if (RegExp(`\\b${siteBaseHostStripped}\\b`, 'i').test(flagText) ||
-                         RegExp(`\\b${siteBaseHostStripped}\\b`.replace('.stackexchange', ''), 'i').test(flagText) ||
-                         RegExp(`\\b${siteBaseHostStripped}\\b`.replace('.stackoverflow', ''), 'i').test(flagText) ||
-                         RegExp(site.name.replace(' ', '\\s?'), 'i').test(flagText))
+                     if (RegExp('\\bmeta\\b', 'i').test(flagText))
                      {
-                        ret.baseHostAddress = siteBaseHost;
-                        ret.name            = site.name;
-                        return ret;
+                        if (StackExchange.options.site.isChildMeta)
+                        {
+                           // On child meta sites, "meta" suggests migration to the global Meta site.
+                           result.baseHostAddress = 'meta.stackexchange.com';
+                           result.name            = 'Meta Stack Exchange';
+                           return result;
+                        }
+                        else if (StackExchange.options.site.isMetaSite)
+                        {
+                           // On Meta Stack Exchange, "meta" suggests nothing.
+                           return result;
+                        }
+                        else
+                        {
+                           // Otherwise, on main sites, "meta" suggests migration to the associated child meta site.
+                           result.baseHostAddress = StackExchange.options.site.childUrl.replace(/^https?:\/\//, '');
+                           result.name            = `Meta ${StackExchange.options.site.name}`;
+                           return result;
+                        }
                      }
-                  });
 
-                  return ret;
+                     sites.forEach(function(site)
+                     {
+                        const siteBaseHost = site.site_url.replace(/^https?:\/\//, '');
+                        if (siteBaseHost !== window.location.host)
+                        {
+                           const siteBaseHostRegexp         = siteBaseHost      .replace('.com', '')
+                                                                                .replace('stackexchange', 's(?:tack)?[\\W_]*e(?:xchange)?')
+                                                                                .replace('stackoverflow', 's(?:tack)?[\\W_]*o(?:overflow)?')
+                                                                                .replaceAll('.', '[\\W_]*');
+                           const siteBaseHostStrippedRegexp = siteBaseHostRegexp.replace('[\\W_]*s(?:tack)?[\\W_]*e(?:xchange)?', '')
+                                                                                .replace('[\\W_]*s(?:tack)?[\\W_]*o(?:overflow)?', '')
+                                                                                .toUpperCase();
+                           const strippedRegexpFlags        = (siteBaseHostStrippedRegexp !== 'OR') ? 'i' : '';
+                           if (RegExp(`\\b${site.name.replaceAll('&amp;', '(?:&|and)').replaceAll(' ', '\\s?')}\\b`, 'i').test(flagText) ||
+                               RegExp(`\\b${siteBaseHostRegexp}\\b`, 'i').test(flagText) ||
+                               RegExp(`\\b${siteBaseHostStrippedRegexp}\\b`, strippedRegexpFlags).test(flagText))
+                           {
+                              result.baseHostAddress = siteBaseHost;
+                              result.name            = site.name;
+                              result.audience        = site.audience;
+                              result.icon            = site.favicon_url;
+                              return result;
+                           }
+                        }
+                     });
+                  }
+                  return result;
             });
 
             function loadMigrationSites()
@@ -1001,14 +1029,19 @@
                return $.get(`https://api.stackexchange.com/2.2/sites?key=${API_KEY}&pagesize=500`)
                   .then(function(data)
                   {
-                     let   sites     = [];
-                     const siteArray = data.items;
-                     if (siteArray && siteArray.length && siteArray[0].name)
+                     let   siteArray = [];
+                     const apiSites  = data.items;
+                     if (apiSites && apiSites.length && apiSites[0].name)
                      {
-                        sites = siteArray;
-                        localStorage.setItem(cachekey, JSON.stringify({age: Date.now(), sites: sites}));
+                        // If we got a valid list of sites from the API, add them,
+                        // but with the "meta" sites stripped out.
+                        siteArray = apiSites.filter(site => ((site.site_type                              !== 'meta_site')   &&
+                                                             (site.site_state                             !== 'linked_meta') &&
+                                                             (site.site_url.indexOf('.meta')              === -1)            &&
+                                                             (site.site_url.indexOf('meta.stackexchange') === -1)));
+                        localStorage.setItem(cachekey, JSON.stringify({age: Date.now(), sites: siteArray}));
                      }
-                     return sites;
+                     return siteArray;
                   });
             }
          }
@@ -1216,11 +1249,12 @@
                   // we haven't already added the migration button, add it now.
                   if (site.name && isQuestion && (!modActions.find(".migrate-btn").length))
                   {
-                     $(`<button type='button' class='migrate-btn s-btn s-btn__muted s-btn__outlined' title='migrate this question to a site chosen by the magic 8-ball'>Migrate to ${site.name}</button>`)
+                     const migrationDestInfo = `\n${site.name}\n${site.baseHostAddress}${site.audience ? `\na site for ${site.audience}` : ''}`;
+                     $(`<button type='button' class='migrate-btn s-btn s-btn__muted s-btn__outlined' title='migrate this question to the site chosen by the magic 8-ball:${migrationDestInfo.replaceAll('\n', '\n\t')}'>${site.icon ? `<img src="${site.icon}" width="12px" height="12px"> ` : ''}Migrate to ${site.name}</button>`)
                         .click(function()
                         {
                            const questionId = location.pathname.match(/\/questions\/(\d+)/)[1];
-                           if (confirm(`This question will be immediately migrated to ${site.name} (${site.baseHostAddress}).\n\nContinue with the migration?`))
+                           if (confirm(`This question will be immediately migrated to:${migrationDestInfo}\n\nContinue with the migration?`))
                            {
                               // Attempt to migrate the question.
                               const doMigrate = (iRetry = 0) =>
