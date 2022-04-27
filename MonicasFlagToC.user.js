@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.5.3
+// @version       1.6.0
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -70,7 +70,8 @@
       }
 
 
-      #postflag-bar .flag-summary, .js-post-flag-bar .flag-summary
+      #postflag-bar .flag-summary,
+      .js-post-flag-bar .flag-summary
       {
          display: flex;
          flex: 1 auto;
@@ -115,7 +116,8 @@
          overflow: hidden;
       }
 
-      .flagToC>li ul>li.inactive, .flagToC>li ul>li.inactive a
+      .flagToC>li ul>li.inactive,
+      .flagToC>li ul>li.inactive a
       {
          color: #6A7E7C;
       }
@@ -128,14 +130,17 @@
 
       .mod-tools.mod-tools-post
       {
+         display: flex;
+         flex-direction: column;
          grid-column: 1 / span 2;
          margin-bottom: 15px;
-         padding: 9px 12px 0;
+         padding: 10px 12px;
    ${makeFlagInfoStickyAndFloatAbovePost
    ?
    `     position: sticky;
          z-index: 1050;
          top: var(--top-bar-allocated-space);
+         max-height: 100vh;
    `
    :
          ''
@@ -144,7 +149,7 @@
 
       .mod-tools.mod-tools-comment-header
       {
-         padding: 12px;
+         padding: 10px 12px;
          margin-top: -1px;
       }
 
@@ -221,16 +226,30 @@
          color: var(--red-600);
       }
 
-      .mod-tools ul.flags
+      .mod-tools ul.flags, .mod-tools ul.reviews
       {
          margin: 0 0 0 10px;
          padding: 0;
+         overflow: auto;
+      }
+      .mod-tools ul.flags:not(:empty)
+      {
+         min-height: 2em;
+         margin: 6px 0 0 10px;
       }
 
       .mod-tools ul.flags > li
       {
-         list-style: none;
          margin: 10px 0 10px 10px;
+         list-style: none;
+      }
+      .mod-tools ul.flags > li:first-child
+      {
+         margin-top: 0;
+      }
+      .mod-tools ul.flags > li:last-child
+      {
+         margin-bottom: 0;
       }
 
       .mod-tools ul.flags > li:before,
@@ -310,6 +329,16 @@
       }
 
 
+      .mod-actions
+      {
+         margin: 0 -4px;
+      }
+
+      .mod-actions:not(:empty)
+      {
+         margin-top: 10px;
+      }
+
       .mod-actions:before,
       .mod-actions:after
       {
@@ -324,10 +353,9 @@
 
       .mod-actions button
       {
+         margin: 0 3px;
          float: right;
-         margin: 0 2px;
       }
-
       .mod-actions .flag-dispute-spam,
       .mod-actions .migrate-btn
       {
@@ -400,7 +428,7 @@
          }
       }
 
-      ${!showTOCInWaffleBar ? `.js-post-flag-bar { display: none !important; }` : ``}
+      ${!showTOCInWaffleBar ? '.js-post-flag-bar { display: none !important; }' : ''}
 
       `;
 
@@ -464,9 +492,9 @@
                   'duplicateOfQuestionId': duplicateOfQuestionId,
                   'siteSpecificCloseReasonId': offTopicReasonId,
                   'siteSpecificOtherText': offTopicOtherText,
-                  //'siteSpecificOtherCommentId': '',
+                //'siteSpecificOtherCommentId': '',
                   'originalSiteSpecificOtherText': 'I’m voting to close this question because ',
-                  'belongsOnBaseHostAddress': belongsOnBaseHostAddress
+                  'belongsOnBaseHostAddress': belongsOnBaseHostAddress,
                }
             });
          },
@@ -480,18 +508,18 @@
          {
             return $.post('/admin/users/' + userId + '/annotate',
                {
-                  "mod-actions": "annotate",
-                  annotation: annotation,
-                  fkey: StackExchange.options.user.fkey
+                  'mod-actions': 'annotate',
+                  'annotation' : annotation,
+                  'fkey'       : StackExchange.options.user.fkey
                });
          },
 
          reviewBanUser: function(userId, days, explanation)
          {
             const params = {
-                  userId: userId,
+                  userId       : userId,
                   reviewBanDays: days,
-                  fkey: StackExchange.options.user.fkey
+                  fkey         : StackExchange.options.user.fkey
                };
             if (explanation)
             {
@@ -589,7 +617,7 @@
          {
             return function()
             {
-               const args = arguments;
+               const args   = arguments;
                const result = $.Deferred();
                setTimeout(function() { result.resolve.apply(result, args) }, msecs);
                return result.promise();
@@ -1188,12 +1216,9 @@
         <path d="m16.01 14.62-1.4 1.4L9 10.45l-5.59 5.59-1.4-1.41 7-7 7 7v-.01Zm0-5-1.4 1.4L9 5.45l-5.59 5.59-1.4-1.41 7-7 7 7v-.01Z"></path>
      </svg>
   </button>
-  <ul class="flags">
-  </ul>
-  <div class="mod-actions">
-  </div>
-  <ul class="reviews">
-  </ul>
+  <ul class="flags"></ul>
+  <div class="mod-actions"></div>
+  <ul class="reviews"></ul>
 </div>`);
             if (makeFlagInfoStickyAndFloatAbovePost)
             {
