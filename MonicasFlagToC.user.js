@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.0
+// @version       1.6.1
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -135,16 +135,14 @@
          grid-column: 1 / span 2;
          margin-bottom: 15px;
          padding: 10px 12px;
-   ${makeFlagInfoStickyAndFloatAbovePost
-   ?
-   `     position: sticky;
+      ${makeFlagInfoStickyAndFloatAbovePost
+      ? `
+         position: sticky;
          z-index: 1050;
          top: var(--top-bar-allocated-space);
-         max-height: 100vh;
-   `
-   :
-         ''
-   }
+    ` : `
+
+    ` }
       }
 
       .mod-tools.mod-tools-comment-header
@@ -157,13 +155,24 @@
       .mod-tools.mod-tools-comment-header
       {
          border: 1px solid var(--orange-200);
+      ${makeFlagInfoStickyAndFloatAbovePost
+      ? `
+
+    ` : `
+         box-shadow: none !important;
+    ` }
       }
       .mod-tools.mod-tools-post.active-flag,
       .mod-tools.mod-tools-comment-header.active-flag
       {
          border: 1px solid var(--orange-400);
+      ${makeFlagInfoStickyAndFloatAbovePost
+      ? `
          box-shadow: var(--bs-md),
                      0 0 6px var(--orange-400) !important;
+    ` : `
+         box-shadow: none !important;
+    ` }
       }
 
       .mod-tools .mod-tools-comment > :first-child
@@ -234,8 +243,14 @@
       }
       .mod-tools ul.flags:not(:empty)
       {
-         min-height: 2em;
          margin: 6px 0 0 10px;
+      ${makeFlagInfoStickyAndFloatAbovePost
+      ? `
+         min-height: 2em;
+         max-height: 40vh;
+    ` : `
+
+   ` }
       }
 
       .mod-tools ul.flags > li
@@ -428,8 +443,15 @@
          }
       }
 
-      ${!showTOCInWaffleBar ? '.js-post-flag-bar { display: none !important; }' : ''}
+   ${!showTOCInWaffleBar
+   ? `
+      .js-post-flag-bar
+      {
+         display: none !important;
+      }
+ ` : `
 
+ ` }
       `;
 
       document.head.appendChild(flagStyles);
