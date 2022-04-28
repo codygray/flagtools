@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.3
+// @version       1.6.4
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -384,6 +384,12 @@
       .mod-actions .migrate-btn
       {
          float: left;
+      }
+
+      .mod-actions .migrate-btn img
+      {
+         margin: -6px 2px -6px -3px;
+         padding: 0;
       }
 
       /**/
@@ -1313,7 +1319,7 @@
                   if (site.name && isQuestion && (!modActions.find(".migrate-btn").length))
                   {
                      const migrationDestInfo = `\n${site.name}\n${site.baseHostAddress}${site.audience ? `\na site for ${site.audience}` : ''}`;
-                     $(`<button type='button' class='migrate-btn s-btn s-btn__muted s-btn__outlined' title='migrate this question to the site chosen by the magic 8-ball:${migrationDestInfo.replaceAll('\n', '\n\t')}'>${site.icon ? `<img src="${site.icon}" width="12px" height="12px"> ` : ''}Migrate to ${site.name}</button>`)
+                     $(`<button type='button' class='migrate-btn s-btn s-btn__muted s-btn__outlined' title='migrate this question to the site chosen by the magic 8-ball:${migrationDestInfo.replaceAll('\n', '\n\t')}'>${site.icon ? `<img src="${site.icon}" width="20px" height="20px"> ` : ''}Migrate to ${site.name}</button>`)
                         .click(function()
                         {
                            const questionId = location.pathname.match(/\/questions\/(\d+)/)[1];
