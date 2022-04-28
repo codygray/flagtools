@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.2
+// @version       1.6.3
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -252,6 +252,15 @@
 
     ` }
       }
+   ${makeFlagInfoStickyAndFloatAbovePost
+   ? `
+      .mod-tools ul.flags:not(:empty).expanded
+      {
+         max-height: unset;
+      }
+ ` : `
+
+ ` }
 
       .mod-tools ul.flags > li
       {
@@ -673,7 +682,9 @@
                const handleSubmitHelpful = (ev) =>
                {
                   ev.preventDefault();
-                  helpfulForm.closest(".mod-tools-post").find("h3 + button.s-popover--close").fadeOut();
+                  const container = helpfulForm.closest(".mod-tools-post");
+                  container.find("h3 + button.s-popover--close").fadeOut();
+                  container.find("ul.flags").removeClass("expanded");
                   helpfulForm.remove();
                   result.resolve(
                   {
@@ -706,6 +717,7 @@
             const container = uiParent.closest(".mod-tools-post");
             container.find(".dismiss-flags-popup").not(helpfulForm).slideUp(250);
             container.find("h3 + button.s-popover--close").fadeIn();
+            container.find("ul.flags").addClass("expanded");
             helpfulForm.slideDown(250)
                        .find("button,input").first().focus();
             return result.promise();
@@ -952,7 +964,9 @@
                      localStorage["flaaaaags.last-decline"] = declineText;
                   }
 
-                  declineForm.closest(".mod-tools-post").find("h3 + button.s-popover--close").fadeOut();
+                  const container = declineForm.closest(".mod-tools-post");
+                  container.find("h3 + button.s-popover--close").fadeOut();
+                  container.find("ul.flags").removeClass("expanded");
                   declineForm.remove();
 
                   result.resolve(
@@ -992,6 +1006,7 @@
             const container = uiParent.closest(".mod-tools-post");
             container.find(".dismiss-flags-popup").not(declineForm).slideUp(250);
             container.find("h3 + button.s-popover--close").fadeIn();
+            container.find("ul.flags").addClass("expanded");
             declineForm.slideDown(250)
                        .find("textarea").first().focus();
             return result.promise();
@@ -1253,8 +1268,10 @@
 
             tools.find("h3 + button.s-popover--close").click(function()
             {
-               const btn = $(this);
-               btn.closest(".mod-tools-post").find(".dismiss-flags-popup").slideUp(250);
+               const btn       = $(this);
+               const container = btn.closest(".mod-tools-post");
+               container.find(".dismiss-flags-popup").slideUp(250);
+               container.find("ul.flags").removeClass("expanded");
                btn.fadeOut();
             });
 
