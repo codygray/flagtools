@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.6
+// @version       1.6.7
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -1235,7 +1235,7 @@
             const tools = $(`
 <div class="s-card bs-md mod-tools mod-tools-post" data-totalflags="${totalFlags}">
   <h3 class='flag-summary'>
-     <a class='show-all-flags' data-postid='${postId}'>${totalFlags} inactive post flags (click to load)</a>
+     <a class='show-all-flags' data-postid='${postId}'>${totalFlags} inactive flag(s) (click to load)</a>
   </h3>
   <button class="ps-absolute t0 r0 s-popover--close s-btn s-btn__muted s-btn__icon" aria-label="Collapse" title="collapse flag dismissal interface">
      <svg aria-hidden="true" class="svg-icon iconArrowDoubleUp native js-svg" width="18" height="18" viewBox="0 0 18 18">
@@ -1390,7 +1390,7 @@
          else if (postFlags.assumeInactiveCommentFlagCount)
          {
             tools.show()
-                 .find("h3.flag-summary").html(`*<a class='show-all-flags' data-postid='${postFlags.postId}' title='Not sure about these flags; click to load accurate information for ${postFlags.assumeInactiveCommentFlagCount} undefined flags'> click to load full flag info</a>`);
+                 .find("h3.flag-summary").html(`*<a class='show-all-flags' data-postid='${postFlags.postId}' title='Not sure about these flags; click to load accurate information for ${postFlags.assumeInactiveCommentFlagCount} undefined flag(s)'> click to load full flag info</a>`);
          }
          else
          {
@@ -1522,28 +1522,19 @@
 
          commentModToolsContainer.toggleClass("active-flag", !!activeCount);
 
-         const totalFlags = tools.data("totalflags");
-
          let flagSummary = [];
          if (activeCount > 0)
          {
-            flagSummary.push(`<a class='show-all-flags' data-postid='${postFlags.postId}' title='load complete flag details'>${activeCount} active comment flags</a>`);
+            flagSummary.push(`${activeCount} active comment flag(s)`);
          }
-
-         if (inactiveCount)
+         if (inactiveCount > 0)
          {
-            flagSummary.push(`${inactiveCount} resolved comment flags`);
+            flagSummary.push(`${inactiveCount} resolved comment flag(s)`);
          }
-         else if (postFlags.assumeInactiveCommentFlagCount)
-         {
-            flagSummary.push('?? resolved comment flags');
-         }
-
          if ((flagsShown < (inactiveCount + activeCount)) || postFlags.assumeInactiveCommentFlagCount)
          {
-            flagSummary.push(`(${flagsShown} shown; load all comments to view the rest)`);
+            flagSummary.push(`<a class='show-all-flags' data-postid='${postFlags.postId}' title='Currently, ${flagsShown} flag(s) are shown. Click here to load all comments, including deleted ones, in order to show full comment flag details inline.'>click to load all comments/flags</a>`);
          }
-
          commentContainer.find("h3.comment-flag-summary")
                          .html(flagSummary.join("; "));
       }
