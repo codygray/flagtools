@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.5
+// @version       1.6.6
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -1530,13 +1530,16 @@
             flagSummary.push(`<a class='show-all-flags' data-postid='${postFlags.postId}' title='load complete flag details'>${activeCount} active comment flags</a>`);
          }
 
-         inactiveCount = inactiveCount || postFlags.assumeInactiveCommentFlagCount;
          if (inactiveCount)
          {
-            flagSummary.push(`${inactiveCount} resolved comment flags${postFlags.assumeInactiveCommentFlagCount ? '*' : ''}`);
+            flagSummary.push(`${inactiveCount} resolved comment flags`);
+         }
+         else if (postFlags.assumeInactiveCommentFlagCount)
+         {
+            flagSummary.push('?? resolved comment flags');
          }
 
-         if (flagsShown < (inactiveCount + activeCount))
+         if ((flagsShown < (inactiveCount + activeCount)) || postFlags.assumeInactiveCommentFlagCount)
          {
             flagSummary.push(`(${flagsShown} shown; load all comments to view the rest)`);
          }
