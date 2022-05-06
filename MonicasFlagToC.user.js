@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.4
+// @version       1.6.5
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -574,40 +574,23 @@
 
          formatDate: function(date)
          {
-            if ( !date.getTime() ) return "(??)";
+            if (!date.getTime())  { return "(??)"; }
 
             // mostly stolen from SE.com
             const delta = (((new Date()).getTime() - date.getTime()) / 1000);
-
-            if (delta < 2) {
-               return 'just now';
-            }
-            if (delta < 60) {
-               return Math.floor(delta) + ' secs ago';
-            }
-            if (delta < 120) {
-               return '1 min ago';
-            }
-            if (delta < 3600) {
-               return Math.floor(delta / 60) + ' mins ago';
-            }
-            if (delta < 7200) {
-               return '1 hour ago';
-            }
-            if (delta < 86400) {
-               return Math.floor(delta / 3600) + ' hours ago';
-            }
-            if (delta < 172800) {
-               return 'yesterday';
-            }
-            if (delta < 259200) {
-               return '2 days ago';
-            }
+            if (delta <      2) { return 'just now'; }
+            if (delta <     60) { return Math.floor(delta) + ' secs ago'; }
+            if (delta <    120) { return '1 min ago'; }
+            if (delta <   3600) { return Math.floor(delta / 60) + ' mins ago'; }
+            if (delta <   7200) { return '1 hour ago'; }
+            if (delta <  86400) { return Math.floor(delta / 3600) + ' hours ago'; }
+            if (delta < 172800) { return 'yesterday'; }
+            if (delta < 259200) { return '2 days ago'; }
             return date.toLocaleString(undefined, {month: "short", timeZone: "UTC"})
-               + ' ' + date.toLocaleString(undefined, {day: "2-digit", timeZone: "UTC"})
-               + ( delta > 31536000 ? ' \'' + date.toLocaleString(undefined, {year: "2-digit", timeZone: "UTC"}) : '')
-               + ' at'
-               + ' ' + date.toLocaleString(undefined, {minute: "2-digit", hour: "2-digit", hour12: false, timeZone: "UTC"});
+                   + ' ' + date.toLocaleString(undefined, {day: "2-digit", timeZone: "UTC"})
+                   + ((delta > 31536000) ? ' \'' + date.toLocaleString(undefined, {year: "2-digit", timeZone: "UTC"}) : '')
+                   + ' at '
+                   + date.toLocaleString(undefined, {minute: "2-digit", hour: "2-digit", hour12: false, timeZone: "UTC"});
          },
 
          formatISODate: function(date)
@@ -1027,7 +1010,7 @@
 
                   if (/[a-zA-Z]+.stack(?:exchange|overflow)(?:.com)?|ask|be(?:long|tter|st| on)|m(?:igrat|ove)|fit/i.test(flagText))
                   {
-                     if (RegExp('\\bmeta\\b', 'i').test(flagText))
+                     if (/\bmeta\b/i.test(flagText))
                      {
                         if (StackExchange.options.site.isChildMeta)
                         {
