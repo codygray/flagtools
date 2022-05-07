@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.7
+// @version       1.6.8
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -1901,7 +1901,7 @@
                         return {
                            flagIds:     ids,
                            description: description,
-                           active:      flag.find(".js-resolve-flags").length > 0,
+                           active:      flag.find(".js-resolve-action").length > 0,
                            flaggers:    mess.find(">span>a[href^='/users/']")
                               .map(function()
                               {
