@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.9
+// @version       1.6.10
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -1286,18 +1286,15 @@
             if (flag.active)  activeCount   += flag.flaggers.length;
             else              inactiveCount += flag.flaggers.length;
 
-            const descriptionDiv     = document.createElement("div");
-            descriptionDiv.innerHTML = flag.description;
-            const descriptionString  = descriptionDiv.innerText;
-            if (((descriptionString.toLowerCase() === "spam") ||
-                 (descriptionString.toLowerCase() === "rude or abusive"))
+            if (((flag.description.toLowerCase() === "spam") ||
+                 (flag.description.toLowerCase() === "rude or abusive"))
                 &&
                 (flag.result?.toLowerCase() !== "disputed"))
             {
                ++nonDisputedRedCount;
             }
 
-            window.FlagFilter.tools.predictMigrationDest(descriptionString)
+            window.FlagFilter.tools.predictMigrationDest(flag.description)
                .done(function(site)
                {
                   // If we have a destination site name, this is a question, and
@@ -1684,8 +1681,10 @@
                }
                const flagSummaries = SummarizeFlags(flagCache[postId], 3).map(function(summary)
                {
+                  const strippedDescription = $($.parseHTML(summary.description)).text();
+
                   const ret = $(`<li data-count='${summary.count}&times;'>`);
-                  ret.attr("title", summary.description  + "\n-- " + summary.flaggerNames);
+                  ret.attr("title", strippedDescription  + "\n-- " + summary.flaggerNames);
                   if (!summary.active)
                   {
                      ret.addClass("inactive");
@@ -1784,6 +1783,7 @@
                                        }, {});
             for (const row of flagList)
             {
+               console.log('here');
                const id          = +row.dataset.eventid;
                const deleteRow   = deletionList.find( el => el.dataset.eventid==id );
                const created     = row.querySelector(":scope>td.creation-date span.relativetime");
@@ -1853,7 +1853,6 @@
             });
 
             // consolidate flags with similar description and disposition
-
             function consolidate(flagList)
             {
                return Object.values(flagList.reduce( function(acc, f)
@@ -1874,7 +1873,6 @@
                      return acc;
                   }, {}) );
             }
-
             ret.flags        = consolidate(ret.flags);
             ret.commentFlags = consolidate(ret.commentFlags);
 
@@ -1893,17 +1891,18 @@
                   flags:  fp.find(".js-post-flag-group")
                      .map(function()
                      {
-                        const flag        = $(this);
-                        const mess        = flag.find(">div:first .js-flag-text");
-                        let   ids         = flag.data("flag-ids")
-                        ids               = ids.split ? ids.split(';').map(id => +id)
-                                                      : [ids];
-                        let   foundUser   = false;
-                        let   tmp         = $("<div>");
-                        const description = tmp.append( mess.contents().filter( function() { foundUser = foundUser || $(this).has("a[href^='/users/']").length; return !foundUser; }).clone() ).html().replace(/\s+-\s+$/, '');
+                        const flag      = $(this);
+                        const mess      = flag.find(">div:first .js-flag-text");
+                        let   ids       = flag.data("flag-ids")
+                        ids             = ids.split ? ids.split(';').map(id => +id)
+                                                    : [ids];
+                        let   foundUser = false;
+                        let   desc      = mess.contents().filter( function() { foundUser = foundUser || $(this).has("a[href^='/users/']").length; return !foundUser; });
+                        desc            = ((desc.length === 2) ? desc[0].innerHTML
+                                                               : $("<div>").append(desc).html().replace(/\s+-\s+$/, ''));
                         return {
                            flagIds:     ids,
-                           description: description,
+                           description: desc,
                            active:      flag.find(".js-resolve-action").length > 0,
                            flaggers:    mess.find(">span>a[href^='/users/']")
                               .map(function()
