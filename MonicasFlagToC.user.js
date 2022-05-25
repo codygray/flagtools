@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.8
+// @version       1.6.9
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -1286,15 +1286,18 @@
             if (flag.active)  activeCount   += flag.flaggers.length;
             else              inactiveCount += flag.flaggers.length;
 
-            if (((flag.description.toLowerCase() === "spam") ||
-                 (flag.description.toLowerCase() === "rude or abusive"))
+            const descriptionDiv     = document.createElement("div");
+            descriptionDiv.innerHTML = flag.description;
+            const descriptionString  = descriptionDiv.innerText;
+            if (((descriptionString.toLowerCase() === "spam") ||
+                 (descriptionString.toLowerCase() === "rude or abusive"))
                 &&
-                (flag.result.toLowerCase() !== "disputed"))
+                (flag.result?.toLowerCase() !== "disputed"))
             {
                ++nonDisputedRedCount;
             }
 
-            window.FlagFilter.tools.predictMigrationDest(flag.description)
+            window.FlagFilter.tools.predictMigrationDest(descriptionString)
                .done(function(site)
                {
                   // If we have a destination site name, this is a question, and
