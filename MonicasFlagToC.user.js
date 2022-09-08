@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.10
+// @version       1.6.11
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -782,7 +782,7 @@
                notvlqquestion:
                {
                   id: -5,
-                  text: "Only flag questions as \"very low quality\" when they require immediate deletion. This just needs to be closed pending edits. You should have raised one of the \"needs improvement\" flags instead.",
+                  text: "Only flag as \"very low quality\" when a question should be immediately deleted. To indicate that it's low quality, downvote it. If it should be closed, raise a \"needs improvement\" flag or close vote.",
                   prompt: "question is <b>not VLQ</b>, just needs to be closed",
                   title: "use when the flagger has raised a \"very low quality\" flag on a question when they should have voted/flagged to close it instead",
                   limitTo: "question",
