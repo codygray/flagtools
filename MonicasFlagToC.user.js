@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.11
+// @version       1.6.12
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -1783,7 +1783,6 @@
                                        }, {});
             for (const row of flagList)
             {
-               console.log('here');
                const id          = +row.dataset.eventid;
                const deleteRow   = deletionList.find( el => el.dataset.eventid==id );
                const created     = row.querySelector(":scope>td.creation-date span.relativetime");
