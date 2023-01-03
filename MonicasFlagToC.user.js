@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.12
+// @version       1.6.13
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -209,9 +209,14 @@
          background: var(--orange-100);
       }
 
-      .mod-tools.mod-tools-post .revision-comment
+      .mod-tools.mod-tools-post .revision-comment,
+      .mod-tools-comment .flag-text.revision-comment
       {
          background-color: var(--orange-100);
+      }
+      .mod-tools-comment .flag-text.revision-comment
+      {
+         padding: 2px 0 !important;
       }
 
       .mod-tools.mod-tools-post .active-flag .revision-comment
