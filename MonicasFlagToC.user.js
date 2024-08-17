@@ -198,7 +198,7 @@
       .mod-tools.mod-tools-post > h3 + button.s-popover--close
       {
          margin: 0;
-         padding: 8px
+         padding: 8px;
          border-radius: 0;
 
          display: none;
