@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.7.1
+// @version       1.7.2
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -21,14 +21,6 @@
 /* eslint-disable no-multi-spaces */
 /* global $:readonly              */  // SO/SE sites always provides jQuery, free-of-charge
 /* global StackExchange:readonly  */  // this global object always exists on SO/SE domains
-
-// BUG: Dark mode is b0rked because "--theme-primary-custom-NNN" variables aren't responsive to dark moderator
-//      for reasons that I don't currently understand.
-//      For this reason, and also because it may not be an effective color scheme for MSO, it may be better
-//      not to use these variables and instead explicitly use the set of orange colors. The main drawback
-//      to that is that it may not fit in well with theme of other sites. But I'm not a mod on any other
-//      sites, so I don't have an easy way to verify that (or a compelling reason to care about it,
-//      assuming no one complains).
 
 (function()
 {
@@ -58,15 +50,6 @@
    {
       let flagStyles = document.createElement("style");
       flagStyles.textContent = `
-      body .container
-      {
-         --theme-primary-custom-050: hsl(     var(--theme-base-primary-color-h),
-                                              var(--theme-base-primary-color-s),
-                                         calc(var(--theme-base-primary-color-l)
-                                              + ((100% - var(--theme-base-primary-color-l)) * .95)));
-      }
-
-
    ${!showTOCInWaffleBar
    ? `
       .js-post-flag-bar
@@ -130,10 +113,41 @@
       }
 
 
+      .mod-tools
+      {
+         /* NOTE: Currently, the set of orange colors is forced here. This works well for SO and MSO, but
+                  may not fit in well with the theme of other SE sites. But, I'm not a mod on any other
+                  sites, so I don't have an easy way to verify that, nor do I have a compelling reason
+                  to care about it (assuming no one complains). A potentially better alternative would be
+                  to use the "--theme-primary-custom-NNN" variables, which reflect the site's color theme.
+                  However, this is gray/black on MSO, which is a poor choice. Worse, this set of variables
+                  is not responsive to dark mode, for reasons that I don't currently understand.
+                  Thus, forcing orange seems better than being broken in dark mode and ugly on MSO.
+                  But, custom variables are defined and used here so that this can be easily experimented
+                  with and changed in the future.
+            NOTE: The "--theme-primary-custom-NNN" variables on SO produce colors that are *almost* the same
+                  (though not exactly) as the orange theme. The main difference is "--theme-primary-custom-100",
+                  which is darker than "--orange-100", so, for this, a custom "--theme-primary-custom-050" color
+                  variable must be defined.
+         */
+         /*
+         --theme-primary-custom-050: hsl(     var(--theme-base-primary-color-h),
+                                              var(--theme-base-primary-color-s),
+                                         calc(var(--theme-base-primary-color-l)
+                                              + ((100% - var(--theme-base-primary-color-l)) * .95)));
+         */
+         --mod-tools-color-100: var(--orange-100);  /* alt: var(--theme-primary-custom-050) */
+         --mod-tools-color-200: var(--orange-200);  /* alt: var(--theme-primary-custom-200) */
+         --mod-tools-color-300: var(--orange-300);  /* alt: var(--theme-primary-custom-300) */
+         --mod-tools-color-400: var(--orange-400);  /* alt: var(--theme-primary-custom-400) */
+         --mod-tools-color-500: var(--orange-500);  /* alt: var(--theme-primary-custom-500) */
+         --mod-tools-color-600: var(--orange-600);  /* alt: var(--theme-primary-custom-600) */
+      }
+
       .mod-tools.mod-tools-post,
       .mod-tools.mod-tools-comment-header
       {
-         background-color: var(--theme-primary-custom-050);
+         background-color: var(--mod-tools-color-100);
       }
 
       .mod-tools.mod-tools-post
@@ -162,7 +176,7 @@
       .mod-tools.mod-tools-post,
       .mod-tools.mod-tools-comment-header
       {
-         border: 1px solid var(--theme-primary-custom-200);
+         border: 1px solid var(--mod-tools-color-200);
       ${makeFlagInfoStickyAndFloatAbovePost
       ? `
 
@@ -173,11 +187,11 @@
       .mod-tools.mod-tools-post.active-flag,
       .mod-tools.mod-tools-comment-header.active-flag
       {
-         border: 1px solid var(--theme-primary-custom-400);
+         border: 1px solid var(--mod-tools-color-400);
       ${makeFlagInfoStickyAndFloatAbovePost
       ? `
          box-shadow: var(--bs-md),
-                     0 0 6px var(--theme-primary-custom-400) !important;
+                     0 0 6px var(--mod-tools-color-400) !important;
     ` : `
          box-shadow: none !important;
     ` }
@@ -185,11 +199,11 @@
 
       .mod-tools .mod-tools-comment > :first-child
       {
-         border-left: 8px solid var(--theme-primary-custom-200);
+         border-left: 8px solid var(--mod-tools-color-200);
       }
       .mod-tools .mod-tools-comment.active-flag > :first-child
       {
-         border-left: 8px solid var(--theme-primary-custom-400);
+         border-left: 8px solid var(--mod-tools-color-400);
       }
 
       .mod-tools.mod-tools-comment-header,
@@ -215,13 +229,14 @@
       .mod-tools.mod-tools-comment-header > h3
       {
          margin: 0;
-         color: var(--theme-primary-custom-600);
+         color: var(--mod-tools-color-600);
       }
 
       .mod-tools.mod-tools-post > h3 + button.s-popover--close
       {
          margin: 0;
          padding: 8px;
+         border-radius: var(--br-sm);
 
          display: none;
       }
@@ -229,20 +244,19 @@
       .mod-tools.mod-tools-post > h3 + button.s-popover--close:active,
       .mod-tools.mod-tools-post > h3 + button.s-popover--close:focus
       {
-         background-color: var(--theme-primary-custom-100) !important;
-         border-color:     var(--theme-primary-custom-300) !important;
-         border-radius: 0;
+         background-color: var(--mod-tools-color-200) !important;
+         border-color:     var(--mod-tools-color-200) !important;
       }
 
       .mod-tools-comment .flag-text.revision-comment
       {
-         background-color: var(--theme-primary-custom-100);
+         background-color: var(--mod-tools-color-100);
          padding: 2px 0 !important;
       }
       .mod-tools-comment.deleted-comment .flag-text.revision-comment,
       .mod-tools.mod-tools-post .revision-comment
       {
-         background-color: var(--theme-primary-custom-200);
+         background-color: var(--mod-tools-color-200);
       }
 
       .mod-tools.mod-tools-post .active-flag .revision-comment
@@ -325,7 +339,11 @@
          grid-column: 1 / span 2;
          padding-left: 2px;
          text-align: center;
-         color: var(--theme-primary-custom);
+         color: var(--mod-tools-color-500);
+      }
+      .comment .flag-dismiss-comment:hover
+      {
+         color: var(--mod-tools-color-600);
       }
 
       .mod-tools ul.flags .flag-info
