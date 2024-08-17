@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.7.0
+// @version       1.7.1
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -21,6 +21,14 @@
 /* eslint-disable no-multi-spaces */
 /* global $:readonly              */  // SO/SE sites always provides jQuery, free-of-charge
 /* global StackExchange:readonly  */  // this global object always exists on SO/SE domains
+
+// BUG: Dark mode is b0rked because "--theme-primary-custom-NNN" variables aren't responsive to dark moderator
+//      for reasons that I don't currently understand.
+//      For this reason, and also because it may not be an effective color scheme for MSO, it may be better
+//      not to use these variables and instead explicitly use the set of orange colors. The main drawback
+//      to that is that it may not fit in well with theme of other sites. But I'm not a mod on any other
+//      sites, so I don't have an easy way to verify that (or a compelling reason to care about it,
+//      assuming no one complains).
 
 (function()
 {
@@ -54,7 +62,8 @@
       {
          --theme-primary-custom-050: hsl(     var(--theme-base-primary-color-h),
                                               var(--theme-base-primary-color-s),
-                                         calc(var(--theme-base-primary-color-l) + ((100% - var(--theme-base-primary-color-l)) * .95)));
+                                         calc(var(--theme-base-primary-color-l)
+                                              + ((100% - var(--theme-base-primary-color-l)) * .95)));
       }
 
 
@@ -190,6 +199,18 @@
          margin-left: -8px;
       }
 
+      .mod-tools .flag-summary .show-all-flags span.light
+      {
+         opacity: 0.5;
+      }
+
+      .mod-tools .flag-summary .show-all-flags svg
+      {
+         vertical-align: text-top;
+         margin-top: 2px;
+         margin-right: 4px;
+      }
+
       .mod-tools.mod-tools-post > h3,
       .mod-tools.mod-tools-comment-header > h3
       {
@@ -213,14 +234,15 @@
          border-radius: 0;
       }
 
-      .mod-tools.mod-tools-post .revision-comment,
       .mod-tools-comment .flag-text.revision-comment
       {
          background-color: var(--theme-primary-custom-100);
-      }
-      .mod-tools-comment .flag-text.revision-comment
-      {
          padding: 2px 0 !important;
+      }
+      .mod-tools-comment.deleted-comment .flag-text.revision-comment,
+      .mod-tools.mod-tools-post .revision-comment
+      {
+         background-color: var(--theme-primary-custom-200);
       }
 
       .mod-tools.mod-tools-post .active-flag .revision-comment
@@ -1212,7 +1234,7 @@
             const tools = $(`
 <div class="s-card bs-md mod-tools mod-tools-post" data-totalflags="${totalFlags}">
   <h3 class='flag-summary'>
-     <a class='show-all-flags' data-postid='${postId}'>${totalFlags} inactive flag(s) (click to load)</a>
+     <a class='show-all-flags' data-postid='${postId}'>${totalFlags} inactive flag(s) <span class='light'>(click to load)</span></a>
   </h3>
   <button class="ps-absolute t0 r0 s-popover--close s-btn s-btn__muted s-btn__icon" aria-label="Collapse" title="collapse flag dismissal interface">
      <svg aria-hidden="true" class="svg-icon iconArrowDoubleUp native js-svg" width="18" height="18" viewBox="0 0 18 18">
@@ -1350,16 +1372,22 @@
 
          const totalFlags   = tools.data("totalflags");
          const commentFlags = postFlags.commentFlags.reduce((acc, f) => acc + f.flaggers.length, 0);
+         const loadMoarHtml = `<a class='show-all-flags' data-postid='${postFlags.postId}' title='Not sure about these flags; click to load accurate information for ${postFlags.assumeInactiveCommentFlagCount} undefined flags'>
+                                 <svg aria-hidden="true" class="svg-icon iconSyncSm js-svg" width="14" height="14" viewBox="0 0 14 14">
+                                   <path d="M10.58 9.58A4.5 4.5 0 0 1 7 11.36 4.4 4.4 0 0 1 2.67 8H1c.48 2.84 2.99 5 6 5a6.1 6.1 0 0 0 4.75-2.25L13 12V8H9zM3.42 4.42A4.5 4.5 0 0 1 7 2.64 4.4 4.4 0 0 1 11.33 6H13a6.06 6.06 0 0 0-6-5 6.1 6.1 0 0 0-4.75 2.25L1 2v4h4z"></path>
+                                 </svg>
+                                 click to load full flag info
+                               </a>`;
 
          // this... really just hacks around incomplete information in the waffle bar
-         postFlags.assumeInactiveCommentFlagCount = totalFlags - (activeCount+inactiveCount) - commentFlags;
+         postFlags.assumeInactiveCommentFlagCount = totalFlags - (activeCount + inactiveCount) - commentFlags;
 
          if (postFlags.flags.length)
          {
-            const flagSummary = [];
+            const flagSummary  = [];
             if (activeCount   > 0)                         flagSummary.push(activeCount   + " active post flags");
             if (inactiveCount > 0)                         flagSummary.push(inactiveCount + " resolved post flags");
-            if (postFlags.assumeInactiveCommentFlagCount)  flagSummary.push(`*<a class='show-all-flags' data-postid='${postFlags.postId}' title='Not sure about these flags; click to load accurate information for ${postFlags.assumeInactiveCommentFlagCount} undefined flags'> click to load full flag info</a>`);
+            if (postFlags.assumeInactiveCommentFlagCount)  flagSummary.push(loadMoarHtml);
 
             tools.show()
                  .find("h3.flag-summary").html(flagSummary.join("; "));
@@ -1367,7 +1395,7 @@
          else if (postFlags.assumeInactiveCommentFlagCount)
          {
             tools.show()
-                 .find("h3.flag-summary").html(`*<a class='show-all-flags' data-postid='${postFlags.postId}' title='Not sure about these flags; click to load accurate information for ${postFlags.assumeInactiveCommentFlagCount} undefined flag(s)'> click to load full flag info</a>`);
+                 .find("h3.flag-summary").html(loadMoarHtml);
          }
          else
          {
