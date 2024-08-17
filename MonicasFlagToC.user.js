@@ -201,7 +201,6 @@
       {
          margin: 0;
          padding: 8px;
-         border-radius: 0;
 
          display: none;
       }
@@ -211,6 +210,7 @@
       {
          background-color: var(--theme-primary-custom-100) !important;
          border-color:     var(--theme-primary-custom-300) !important;
+         border-radius: 0;
       }
 
       .mod-tools.mod-tools-post .revision-comment,
@@ -303,6 +303,7 @@
          grid-column: 1 / span 2;
          padding-left: 2px;
          text-align: center;
+         color: var(--theme-primary-custom);
       }
 
       .mod-tools ul.flags .flag-info
@@ -982,6 +983,8 @@
                {
                   let result = { baseHostAddress: '', name: '', audience: '', icon: '' };
 
+                  // TODO: Exclude ".com/admin/" from matching this regex in order to prevent system-generated links
+                  //       from producing a migrate button.
                   if (/[a-zA-Z]+.stack(?:exchange|overflow)(?:.com)?|ask|be(?:long|tter|st| on)|m(?:igrat|ove)|fit/i.test(flagText))
                   {
                      if (/\bmeta\b/i.test(flagText))
