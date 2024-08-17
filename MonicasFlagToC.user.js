@@ -52,7 +52,9 @@
       flagStyles.textContent = `
       body .container
       {
-         --theme-primary-custom-050: hsl(27, 89%, calc(48% + ((100% - 48%) * .95)));
+         --theme-primary-custom-050: hsl(     var(--theme-base-primary-color-h),
+                                              var(--theme-base-primary-color-s),
+                                         calc(var(--theme-base-primary-color-l) + ((100% - var(--theme-base-primary-color-l)) * .95)));
       }
 
 
