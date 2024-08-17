@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.7.2
+// @version       1.7.3
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -60,32 +60,24 @@
 
  ` }
 
-      #postflag-bar     .flag-summary,
-      .js-post-flag-bar .flag-summary
-      {
-         display: flex;
-         flex: 1 auto;
-         flex-direction: column;
-         margin-left:  40px;
-         margin-right: 40px;
-      }
-
       .flagToC
       {
          list-style-type: none;
-         margin: 0;
+         margin:  0 42px 0 0;  /* leave space on right for close btn (which is, bizarrely, "absolute") */
          padding: 0;
       }
 
       .flagToC > li
       {
-         padding: 4px;
-         width: 15em;
          float: left;
-         box-shadow: 0 0 8px rgba(214, 217, 220, 0.7);
-         margin: 4px;
-         border-radius: 4px;
-         background-color: #fff;
+         width: 32%;
+         min-width: 15em;
+         margin:  4px;
+         padding: 4px;
+         background-color: var(--white);
+         border: var(--su-static1) solid var(--black-225);
+         border-radius: var(--br-sm);
+         box-shadow: var(--bs-sm);
       }
 
       .flagToC > li ul
@@ -96,8 +88,8 @@
       .flagToC > li ul > li::before
       {
          content: attr(data-count);
-         color: #6A7E7C;
-         padding-right: 1em;
+         padding-right: 4px;
+         color: var(--fc-light);
       }
       .flagToC > li ul > li
       {
@@ -109,7 +101,7 @@
       .flagToC > li ul > li.inactive,
       .flagToC > li ul > li.inactive a
       {
-         color: #6A7E7C;
+         opacity: 0.7;
       }
 
 
