@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.6.13
+// @version       1.7.0
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -50,33 +50,29 @@
    {
       let flagStyles = document.createElement("style");
       flagStyles.textContent = `
-      .question-page #answers .answer.deleted-answer
+      body .container
       {
-         /* Same as .deleted-answer { border-top } */
-         border-bottom: 1px solid var(--red-100);
-      }
-
-      #postflag-bar
-      {
-         display: none;
-         background-color: rgba( 239,240,241, 0.75);
-         opacity: 1;
-         z-index: 1050; -- rise above left sidebar
-      }
-
-      #postflag-bar>div
-      {
-         display: grid;
+         --theme-primary-custom-050: hsl(27, 89%, calc(48% + ((100% - 48%) * .95)));
       }
 
 
-      #postflag-bar .flag-summary,
+   ${!showTOCInWaffleBar
+   ? `
+      .js-post-flag-bar
+      {
+         display: none !important;
+      }
+ ` : `
+
+ ` }
+
+      #postflag-bar     .flag-summary,
       .js-post-flag-bar .flag-summary
       {
          display: flex;
          flex: 1 auto;
          flex-direction: column;
-         margin-left: 40px;
+         margin-left:  40px;
          margin-right: 40px;
       }
 
@@ -87,45 +83,46 @@
          padding: 0;
       }
 
-      .flagToC>li
+      .flagToC > li
       {
          padding: 4px;
-         width:15em;
-         float:left;
-         box-shadow: 0 0 8px rgba(214,217,220,.7);
+         width: 15em;
+         float: left;
+         box-shadow: 0 0 8px rgba(214, 217, 220, 0.7);
          margin: 4px;
          border-radius: 4px;
          background-color: #fff;
       }
 
-      .flagToC>li ul
+      .flagToC > li ul
       {
-         margin: 0;
+         margin:  0;
          padding: 0;
       }
-      .flagToC>li ul>li::before
+      .flagToC > li ul > li::before
       {
          content: attr(data-count);
          color: #6A7E7C;
          padding-right: 1em;
       }
-      .flagToC>li ul>li
+      .flagToC > li ul > li
       {
          text-overflow: ellipsis;
          white-space: nowrap;
          overflow: hidden;
       }
 
-      .flagToC>li ul>li.inactive,
-      .flagToC>li ul>li.inactive a
+      .flagToC > li ul > li.inactive,
+      .flagToC > li ul > li.inactive a
       {
          color: #6A7E7C;
       }
 
+
       .mod-tools.mod-tools-post,
       .mod-tools.mod-tools-comment-header
       {
-         background-color: var(--orange-050);
+         background-color: var(--theme-primary-custom-050);
       }
 
       .mod-tools.mod-tools-post
@@ -154,7 +151,7 @@
       .mod-tools.mod-tools-post,
       .mod-tools.mod-tools-comment-header
       {
-         border: 1px solid var(--orange-200);
+         border: 1px solid var(--theme-primary-custom-200);
       ${makeFlagInfoStickyAndFloatAbovePost
       ? `
 
@@ -165,11 +162,11 @@
       .mod-tools.mod-tools-post.active-flag,
       .mod-tools.mod-tools-comment-header.active-flag
       {
-         border: 1px solid var(--orange-400);
+         border: 1px solid var(--theme-primary-custom-400);
       ${makeFlagInfoStickyAndFloatAbovePost
       ? `
          box-shadow: var(--bs-md),
-                     0 0 6px var(--orange-400) !important;
+                     0 0 6px var(--theme-primary-custom-400) !important;
     ` : `
          box-shadow: none !important;
     ` }
@@ -177,11 +174,11 @@
 
       .mod-tools .mod-tools-comment > :first-child
       {
-         border-left: 8px solid var(--orange-200);
+         border-left: 8px solid var(--theme-primary-custom-200);
       }
       .mod-tools .mod-tools-comment.active-flag > :first-child
       {
-         border-left: 8px solid var(--orange-400);
+         border-left: 8px solid var(--theme-primary-custom-400);
       }
 
       .mod-tools.mod-tools-comment-header,
@@ -195,24 +192,29 @@
       .mod-tools.mod-tools-comment-header > h3
       {
          margin: 0;
-         color: var(--orange-900);
+         color: var(--theme-primary-custom-600);
       }
 
       .mod-tools.mod-tools-post > h3 + button.s-popover--close
       {
+         margin: 0;
+         padding: 8px
+         border-radius: 0;
+
          display: none;
       }
       .mod-tools.mod-tools-post > h3 + button.s-popover--close:hover,
       .mod-tools.mod-tools-post > h3 + button.s-popover--close:active,
       .mod-tools.mod-tools-post > h3 + button.s-popover--close:focus
       {
-         background: var(--orange-100);
+         background-color: var(--theme-primary-custom-100) !important;
+         border-color:     var(--theme-primary-custom-300) !important;
       }
 
       .mod-tools.mod-tools-post .revision-comment,
       .mod-tools-comment .flag-text.revision-comment
       {
-         background-color: var(--orange-100);
+         background-color: var(--theme-primary-custom-100);
       }
       .mod-tools-comment .flag-text.revision-comment
       {
@@ -230,14 +232,10 @@
          margin-left: 9px;
       }
 
-      .mod-tools.mod-tools-post .dismiss-flag-popup-buttons .flag-dismiss-helpful
-      {
-         color: var(--theme-button-color);
-      }
-
+      .mod-tools.mod-tools-post .dismiss-flag-popup-buttons .flag-dismiss-helpful,
       .mod-tools.mod-tools-post .dismiss-flag-popup-buttons .flag-dismiss-decline
       {
-         color: var(--red-600);
+         color: var(--_bu-fc);
       }
 
       .mod-tools ul.flags, .mod-tools ul.reviews
@@ -349,7 +347,7 @@
 
       .mod-tools .dismiss-flags-popup .mark-flag-declined.-btn
       {
-         color: var(--red-800);
+         color: var(--_bu-fc-selected);
       }
 
       .mod-tools .dismiss-flags-popup form>button.g-col
@@ -397,44 +395,23 @@
          padding: 0;
       }
 
-      /**/
 
       .mod-tools ul.flags .flag-info .flag-creation-user
       {
          white-space: nowrap;
       }
 
-      /* fix close button in the flag bar to make the whole thing clickable */
 
-      #postflag-bar .nav-button.close {
-         color: unset;
-         padding: unset;
-         border: unset;
-         border-radius: unset;
-         background-color: unset;
+      /* Tweak deleted answer styles: */
+
+      .question-page #answers .answer.deleted-answer
+      {
+         /* Match .deleted-answer { border-top } */
+         border-bottom: 1px solid var(--red-300);
       }
 
-      #postflag-bar .nav-button.close:hover {
-         color: unset;
-      }
 
-      #postflag-bar .nav-button.close a {
-         background-color: #6a737c;
-         border: 1px solid #9fa6ad;
-         border-radius: 10px;
-         color: white;
-         display: block;
-         padding: 2px 5px;
-      }
-
-      #postflag-bar .nav-button.close a:hover {
-         background-color: white;
-         color: #9fa6ad;
-      }
-
-      /*
-        Put comment delete link in consistent place
-      */
+      /* Style comment delete links (put in a consistent place): */
 
       .comment, .comment .flags
       {
@@ -444,14 +421,14 @@
       .comment .js-comment-delete
       {
          float: right;
-         margin: 0;
+         margin:  0;
          padding: 0;
       }
 
       .comment .js-comment-delete span
       {
          visibility: visible;
-         margin: 0;
+         margin:  0;
          padding: 0;
       }
 
@@ -462,16 +439,6 @@
             width: 54px;
          }
       }
-
-   ${!showTOCInWaffleBar
-   ? `
-      .js-post-flag-bar
-      {
-         display: none !important;
-      }
- ` : `
-
- ` }
       `;
 
       document.head.appendChild(flagStyles);
