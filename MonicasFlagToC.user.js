@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.7.3
+// @version       1.8.0
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -26,6 +26,7 @@
 {
    'use strict';
 
+   // User-configurable options:
    const makeFlagInfoStickyAndFloatAbovePost = ((localStorage.getItem("flaaaaags.sticky") ?? 'true' ) === 'true');
    const showTOCInWaffleBar                  = ((localStorage.getItem("flaaaaags.toc"   ) ?? 'false') === 'true');
 
@@ -72,6 +73,7 @@
          float: left;
          width: 32%;
          min-width: 15em;
+         max-width: fit-content;
          margin:  4px;
          padding: 4px;
          background-color: var(--white);
@@ -88,7 +90,7 @@
       .flagToC > li ul > li::before
       {
          content: attr(data-count);
-         padding-right: 4px;
+         padding-right: 2px;
          color: var(--fc-light);
       }
       .flagToC > li ul > li
@@ -245,6 +247,7 @@
          background-color: var(--mod-tools-color-100);
          padding: 2px 0 !important;
       }
+
       .mod-tools-comment.deleted-comment .flag-text.revision-comment,
       .mod-tools.mod-tools-post .revision-comment
       {
@@ -418,6 +421,7 @@
          margin: 0 3px;
          float: right;
       }
+      .mod-actions .flag-delete-plagiarism,
       .mod-actions .flag-dispute-spam,
       .mod-actions .migrate-btn
       {
@@ -631,6 +635,13 @@
          disputeSpamAbusiveFlags: function(postId)
          {
             $.post("/admin/posts/" + postId + "/clear-offensive-spam-flags", {fkey: StackExchange.options.user.fkey})
+               .then(() => location.reload(true),
+                        function(err) { console.log(err); alert("something went wrong") });
+         },
+
+         deleteAsPlagiarism: function(postId)
+         {
+            $.post("/admin/posts/" + postId + "/delete-as-plagiarism", {fkey: StackExchange.options.user.fkey})
                .then(() => location.reload(true),
                         function(err) { console.log(err); alert("something went wrong") });
          },
@@ -1015,9 +1026,10 @@
                {
                   let result = { baseHostAddress: '', name: '', audience: '', icon: '' };
 
-                  // TODO: Exclude ".com/admin/" from matching this regex in order to prevent system-generated links
-                  //       from producing a migrate button.
-                  if (/[a-zA-Z]+.stack(?:exchange|overflow)(?:.com)?|ask|be(?:long|tter|st| on)|m(?:igrat|ove)|fit/i.test(flagText))
+                  // NOTE: When ".com" is followed by "/admin/", this is excluded from the matches in order to
+                  //       prevent system-generated links from producing a migrate button, since users
+                  //       requesting migration are not going to be including these types of URLs.
+                  if (/ask|be(?:long|tter|st| on)|m(?:igrat|ove)|fit|(?:[a-zA-Z]+.stackexchange|(?:[a-zA-Z]+.)?stackoverflow)(?!.com\/admin\/)(?:.com)?/i.test(flagText))
                   {
                      if (/\bmeta\b/i.test(flagText))
                      {
@@ -1287,20 +1299,33 @@
          const flagContainer = tools.find("ul.flags").empty();
          const isQuestion    = ((postContainer.length === 1) && (postContainer[0].id === 'question'));
 
-         let activeCount         = 0;
-         let inactiveCount       = 0;
-         let nonDisputedRedCount = 0;
+         let activeCount           = 0;
+         let inactiveCount         = 0;
+         let nonDisputedRedCount   = 0;
+         let plagiarismFlagPending = false;
          for (const flag of postFlags.flags)
          {
             if (flag.active)  activeCount   += flag.flaggers.length;
             else              inactiveCount += flag.flaggers.length;
 
-            if (((flag.description.toLowerCase() === "spam") ||
-                 (flag.description.toLowerCase() === "rude or abusive"))
+            flag.description       = flag.description.trim();
+            const descriptionLower = flag.description.toLowerCase();
+            if (((descriptionLower === "spam") ||
+                 (descriptionLower === "rude or abusive"))
                 &&
                 (flag.result?.toLowerCase() !== "disputed"))
             {
                ++nonDisputedRedCount;
+            }
+            if (descriptionLower.startsWith("<div>plagiarism:"))
+            {
+               flag.description = flag.description.replace("<div>", "<span>")
+                                                  .replace("</div>", "</span><br>");
+
+               if (flag.active)
+               {
+                  plagiarismFlagPending = true;
+               }
             }
 
             window.FlagFilter.tools.predictMigrationDest(flag.description)
@@ -1355,6 +1380,19 @@
                })
 
             flagContainer.append(RenderFlagItem(false, isQuestion, flag, postFlags.reviews));
+         }
+
+         if (plagiarismFlagPending && (!tools.find(".flag-delete-plagiarism").length))
+         {
+            $("<button type='button' class='flag-delete-plagiarism s-btn s-btn__filled s-btn__danger' title='delete the post as plagiarized content, removing any reputation earned by its author, and mark all pending plagiarism flags as helpful'>Delete as plagiarism</button>")
+            .appendTo(modActions)
+            .click(function()
+            {
+               if (confirm("This will delete the post as plagiarized content, removing any reputation earned by its author, and mark all pending plagiarism flags as helpful.\n\nAre you sure?"))
+               {
+                  window.FlagFilter.tools.deleteAsPlagiarism(postFlags.postId);
+               }
+            });
          }
 
          if ((nonDisputedRedCount > 0) && (!tools.find(".flag-dispute-spam").length))
@@ -1696,23 +1734,27 @@
                }
                const flagSummaries = SummarizeFlags(flagCache[postId], 3).map(function(summary)
                {
-                  const strippedDescription = $($.parseHTML(summary.description)).text();
+                  const strippedDescription = $($.parseHTML(summary.description)).text().trim();
 
-                  const ret = $(`<li data-count='${summary.count}&times;'>`);
-                  ret.attr("title", strippedDescription  + "\n-- " + summary.flaggerNames);
+                  const el = $(`<li data-count='${summary.count}&times;'
+                                    title='${strippedDescription}\n&ndash; ${summary.flaggerNames}'
+                                >`);
                   if (!summary.active)
                   {
-                     ret.addClass("inactive");
+                     el.addClass("inactive");
                   }
                   if (summary.type.toLowerCase() === 'comment')
                   {
-                     $("<a>").attr("href", (/#/.test(url) ? '' : url) + "#comments-"+postId).text("(comment) " + summary.description).appendTo(ret);
+                     $("<a>").attr("href", (/#/.test(url) ? '' : url) + "#comments-"+postId).text("(comment) " + summary.description).appendTo(el);
                   }
                   else
                   {
-                     ret.text(summary.description);
+                     // TODO: Decide whether this be displaying "summary.description" or "strippedDescription"?
+                     //       It originally displayed the former, but, for plagiarism flags, that includes
+                     //       HTML elements (a <div> and <a> tags), so it was changed to the latter.
+                     el.text(strippedDescription);
                   }
-                  return ret;
+                  return el;
                });
                let entry = $("<li>");
                entry.append($("<a>")
