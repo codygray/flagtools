@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.8.1
+// @version       1.8.2
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -588,7 +588,8 @@
 
          dismissFlag: function(postId, flagIds, helpful, declineId, comment)
          {
-            return $.post(`/messages/delete-moderator-messages/${postId}/${getTicks()}?valid=${helpful}&flagIdsSemiColonDelimited=${flagIds.join ? flagIds.join(';') : flagIds}`,
+            const ticks = window.FlagFilter.tools.getTicks();
+            return $.post(`/messages/delete-moderator-messages/${postId}/${ticks}?valid=${helpful}&flagIdsSemiColonDelimited=${flagIds.join ? flagIds.join(';') : flagIds}`,
                           { fkey:    StackExchange.options.user.fkey,
                             comment: comment || declineId || '',
                           });
@@ -596,7 +597,8 @@
 
          dismissAllFlags: function(postId, helpful, declineId, comment)
          {
-            return $.post(`/messages/delete-moderator-messages/${postId}/${getTicks()}?valid=${helpful}`,
+            const ticks = window.FlagFilter.tools.getTicks();
+            return $.post(`/messages/delete-moderator-messages/${postId}/${ticks}?valid=${helpful}`,
                            { fkey:    StackExchange.options.user.fkey,
                             comment: comment || declineId || '',
                           });
