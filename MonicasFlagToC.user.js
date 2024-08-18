@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.8.0
+// @version       1.8.1
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -488,13 +488,139 @@
    {
       window.FlagFilter.tools = $.extend({}, window.FlagFilter.tools,
       {
+         // hate safari
+         parseISODate: function(isoDate, def)
+         {
+            const parsed = Date.parse((isoDate||'').replace(' ','T'));
+            return parsed ? new Date(parsed) : def;
+         },
+
+         formatDate: function(date)
+         {
+            if (!date.getTime())  { return "(??)"; }
+
+            // mostly stolen from SE.com
+            const delta = (((new Date()).getTime() - date.getTime()) / 1000);
+            if (delta <      2) { return 'just now'; }
+            if (delta <     60) { return Math.floor(delta) + ' secs ago'; }
+            if (delta <    120) { return '1 min ago'; }
+            if (delta <   3600) { return Math.floor(delta / 60) + ' mins ago'; }
+            if (delta <   7200) { return '1 hour ago'; }
+            if (delta <  86400) { return Math.floor(delta / 3600) + ' hours ago'; }
+            if (delta < 172800) { return 'yesterday'; }
+            if (delta < 259200) { return '2 days ago'; }
+            return date.toLocaleString(undefined, {month: "short", timeZone: "UTC"})
+                   + ' ' + date.toLocaleString(undefined, {day: "2-digit", timeZone: "UTC"})
+                   + ((delta > 31536000) ? ' \'' + date.toLocaleString(undefined, {year: "2-digit", timeZone: "UTC"}) : '')
+                   + ' at '
+                   + date.toLocaleString(undefined, {minute: "2-digit", hour: "2-digit", hour12: false, timeZone: "UTC"});
+         },
+
+         formatISODate: function(date)
+         {
+            return date.toJSON().replace(/\.\d+Z/, 'Z');
+         },
+
+         getTicks: function()
+         {
+            return StackExchange.moderator.renderTimeTicks || (Date.now() * 10000 + 621355968000000000);
+         },
+
+
+         hitEndpoint: function(reloadOnSuccess, url, params = { fkey: StackExchange.options.user.fkey })
+         {
+            $.post(url, params)
+             .fail(function(err)                 { alert(`Failed to hit a Stack Exchange HTTP endpoint:\n${err}`); })
+             .done(function(data)
+                   {
+                      if (data && data.success)  { if (reloadOnSuccess) { location.reload(true); } }
+                      else                       { alert(data?.message || "A Stack Exchange HTTP endpoint failed without any error information."); }
+                   });
+         },
+
+         voteOnPost: function(postId, voteId)
+         {
+            window.FlagFilter.tools.hitEndpoint(false, `/posts/${postId}/vote/${voteId}`);
+         },
+         downvotePost: function(postId)  { window.FlagFilter.tools.voteOnPost(postId,  3); },
+         deletePost  : function(postId)  { window.FlagFilter.tools.voteOnPost(postId, 10); },
+         undeletePost: function(postId)  { window.FlagFilter.tools.voteOnPost(postId, 11); },
+
+         disputeSpamAbusiveFlags: function(postId)
+         {
+            window.FlagFilter.tools.hitEndpoint(true, `/admin/posts/${postId}/clear-offensive-spam-flags`);
+         },
+
+         deleteAsPlagiarism: function(postId)
+         {
+            window.FlagFilter.tools.hitEndpoint(true, `/admin/posts/${postId}/delete-as-plagiarism`);
+         },
+
+         moveCommentsToChat: function(postId)
+         {
+            window.FlagFilter.tools.hitEndpoint(false, `/admin/posts/${postId}/move-comments-to-chat`);
+         },
+
+         annotateUser: function(userId, annotation)
+         {
+            window.FlagFilter.tools.hitEndpoint(false, `/admin/users/${userId}/annotate`,
+                                               {
+                                                 'fkey'       : StackExchange.options.user.fkey,
+                                                 'mod-actions': 'annotate',
+                                                 'annotation' : annotation,
+                                               });
+         },
+
+         reviewBanUser: function(userId, days, explanation)
+         {
+            const params = {
+                              'fkey'         : StackExchange.options.user.fkey,
+                              'userId'       : userId,
+                              'reviewBanDays': days,
+                           };
+            if (explanation)
+            {
+               params.explanation = explanation;
+            }
+            window.FlagFilter.tools.hitEndpoint(false, '/admin/review/ban-user', params);
+         },
+
+
+         dismissFlag: function(postId, flagIds, helpful, declineId, comment)
+         {
+            return $.post(`/messages/delete-moderator-messages/${postId}/${getTicks()}?valid=${helpful}&flagIdsSemiColonDelimited=${flagIds.join ? flagIds.join(';') : flagIds}`,
+                          { fkey:    StackExchange.options.user.fkey,
+                            comment: comment || declineId || '',
+                          });
+         },
+
+         dismissAllFlags: function(postId, helpful, declineId, comment)
+         {
+            return $.post(`/messages/delete-moderator-messages/${postId}/${getTicks()}?valid=${helpful}`,
+                           { fkey:    StackExchange.options.user.fkey,
+                            comment: comment || declineId || '',
+                          });
+         },
+
+         dismissAllCommentFlags: function(commentId, flagIds)
+         {
+            // Shog sez: "although the UI implies it's possible, we can't currently dismiss individual comment flags"
+            return $.post(`/admin/comment/${commentId}/clear-flags`,
+                          { fkey: StackExchange.options.user.fkey });
+         },
+
+
          reopenQuestion: function(postId)
          {
-            if (typeof postId === 'undefined' || postId === null) return;
-            return $.post('/flags/questions/' + postId + '/reopen/add',
-               {
-                  fkey: StackExchange.options.user.fkey
-               });
+            if ((typeof postId === 'undefined') || (postId === null))
+            {
+               return;
+            }
+            else
+            {
+               return $.post(`/flags/questions/${postId}/reopen/add`,
+                             { fkey: StackExchange.options.user.fkey });
+            }
          },
 
          // closeReasonId: 'SiteSpecific', 'NeedMoreFocus', 'NeedsDetailsOrClarity', 'OpinionBased', 'Duplicate'
@@ -552,105 +678,8 @@
             return window.FlagFilter.tools.closeQuestion(postId, 'SiteSpecific', 2, null, destinationHost);
          },
 
-         annotateUser: function(userId, annotation)
-         {
-            return $.post('/admin/users/' + userId + '/annotate',
-               {
-                  'mod-actions': 'annotate',
-                  'annotation' : annotation,
-                  'fkey'       : StackExchange.options.user.fkey
-               });
-         },
 
-         reviewBanUser: function(userId, days, explanation)
-         {
-            const params = {
-                  userId       : userId,
-                  reviewBanDays: days,
-                  fkey         : StackExchange.options.user.fkey
-               };
-            if (explanation)
-            {
-               params.explanation = explanation;
-            }
-            return $.post('/admin/review/ban-user', params);
-         },
-
-         // hate safari
-         parseISODate: function(isoDate, def)
-         {
-            const parsed = Date.parse((isoDate||'').replace(' ','T'));
-            return parsed ? new Date(parsed) : def;
-         },
-
-         formatDate: function(date)
-         {
-            if (!date.getTime())  { return "(??)"; }
-
-            // mostly stolen from SE.com
-            const delta = (((new Date()).getTime() - date.getTime()) / 1000);
-            if (delta <      2) { return 'just now'; }
-            if (delta <     60) { return Math.floor(delta) + ' secs ago'; }
-            if (delta <    120) { return '1 min ago'; }
-            if (delta <   3600) { return Math.floor(delta / 60) + ' mins ago'; }
-            if (delta <   7200) { return '1 hour ago'; }
-            if (delta <  86400) { return Math.floor(delta / 3600) + ' hours ago'; }
-            if (delta < 172800) { return 'yesterday'; }
-            if (delta < 259200) { return '2 days ago'; }
-            return date.toLocaleString(undefined, {month: "short", timeZone: "UTC"})
-                   + ' ' + date.toLocaleString(undefined, {day: "2-digit", timeZone: "UTC"})
-                   + ((delta > 31536000) ? ' \'' + date.toLocaleString(undefined, {year: "2-digit", timeZone: "UTC"}) : '')
-                   + ' at '
-                   + date.toLocaleString(undefined, {minute: "2-digit", hour: "2-digit", hour12: false, timeZone: "UTC"});
-         },
-
-         formatISODate: function(date)
-         {
-            return date.toJSON().replace(/\.\d+Z/, 'Z');
-         },
-
-         dismissAllCommentFlags: function(commentId, flagIds)
-         {
-            // although the UI implies it's possible, we can't currently dismiss individual comment flags
-           return $.post('/admin/comment/' + commentId+ '/clear-flags', {fkey:StackExchange.options.user.fkey});
-         },
-
-
-         dismissFlag: function(postId, flagIds, helpful, declineId, comment)
-         {
-            const ticks = StackExchange.moderator.renderTimeTicks||(Date.now()*10000+621355968000000000);
-            return $.post('/messages/delete-moderator-messages/' + postId + '/'
-               + ticks + '?valid=' + helpful + '&flagIdsSemiColonDelimited=' + (flagIds.join ? flagIds.join(';') : flagIds),
-               {comment: comment||declineId||'', fkey:StackExchange.options.user.fkey});
-         },
-
-         dismissAllFlags: function(postId, helpful, declineId, comment)
-         {
-            const ticks = StackExchange.moderator.renderTimeTicks||(Date.now()*10000+621355968000000000);
-            return $.post('/messages/delete-moderator-messages/' + postId + '/'
-               + ticks+ '?valid=' + helpful,
-               {comment: comment||declineId||'', fkey:StackExchange.options.user.fkey});
-         },
-
-         disputeSpamAbusiveFlags: function(postId)
-         {
-            $.post("/admin/posts/" + postId + "/clear-offensive-spam-flags", {fkey: StackExchange.options.user.fkey})
-               .then(() => location.reload(true),
-                        function(err) { console.log(err); alert("something went wrong") });
-         },
-
-         deleteAsPlagiarism: function(postId)
-         {
-            $.post("/admin/posts/" + postId + "/delete-as-plagiarism", {fkey: StackExchange.options.user.fkey})
-               .then(() => location.reload(true),
-                        function(err) { console.log(err); alert("something went wrong") });
-         },
-
-         moveCommentsToChat: function(postId)
-         {
-            return $.post('/admin/posts/' + postId + '/move-comments-to-chat', {fkey:StackExchange.options.user.fkey});
-         },
-
+      /*
          makeWait: function(msecs)
          {
             return function()
@@ -661,6 +690,7 @@
                return result.promise();
             }
          },
+      */
 
          flagHelpfulUI: function(uiParent, isQuestion)
          {
