@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.8.2
+// @version       1.9.0
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -27,8 +27,9 @@
    'use strict';
 
    // User-configurable options:
-   const makeFlagInfoStickyAndFloatAbovePost = ((localStorage.getItem("flaaaaags.sticky") ?? 'true' ) === 'true');
-   const showTOCInWaffleBar                  = ((localStorage.getItem("flaaaaags.toc"   ) ?? 'false') === 'true');
+   const makeFlagInfoStickyAndFloatAbovePost = ((localStorage.getItem("flaaaaags.sticky"  ) ?? 'true' ) === 'true');
+   const showWaffleBarTOC                    = ((localStorage.getItem("flaaaaags.toc"     ) ?? 'false') === 'true');
+   const makeWaffleBarTOCVertical            = ((localStorage.getItem("flaaaaags.vertical") ?? 'false') === 'true');
 
    // Registered on Stack Apps in order to obtain an API key.
    // Client ID is 18434 (https://stackapps.com/apps/oauth/view/18434)
@@ -51,63 +52,12 @@
    {
       let flagStyles = document.createElement("style");
       flagStyles.textContent = `
-   ${!showTOCInWaffleBar
-   ? `
-      .js-post-flag-bar
-      {
-         display: none !important;
-      }
- ` : `
 
- ` }
+      /*
+         General (Variables)
+       */
 
-      .flagToC
-      {
-         list-style-type: none;
-         margin:  0 42px 0 0;  /* leave space on right for close btn (which is, bizarrely, "absolute") */
-         padding: 0;
-      }
-
-      .flagToC > li
-      {
-         float: left;
-         width: 32%;
-         min-width: 15em;
-         max-width: fit-content;
-         margin:  4px;
-         padding: 4px;
-         background-color: var(--white);
-         border: var(--su-static1) solid var(--black-225);
-         border-radius: var(--br-sm);
-         box-shadow: var(--bs-sm);
-      }
-
-      .flagToC > li ul
-      {
-         margin:  0;
-         padding: 0;
-      }
-      .flagToC > li ul > li::before
-      {
-         content: attr(data-count);
-         padding-right: 2px;
-         color: var(--fc-light);
-      }
-      .flagToC > li ul > li
-      {
-         text-overflow: ellipsis;
-         white-space: nowrap;
-         overflow: hidden;
-      }
-
-      .flagToC > li ul > li.inactive,
-      .flagToC > li ul > li.inactive a
-      {
-         opacity: 0.7;
-      }
-
-
-      .mod-tools
+      body > .container
       {
          /* NOTE: Currently, the set of orange colors is forced here. This works well for SO and MSO, but
                   may not fit in well with the theme of other SE sites. But, I'm not a mod on any other
@@ -138,6 +88,143 @@
          --mod-tools-color-600: var(--orange-600);  /* alt: var(--theme-primary-custom-600) */
       }
 
+      /*
+         Waffle Bar
+       */
+
+      .js-post-flag-bar
+      {
+         display: none !important;
+
+         background-color: var(--mod-tools-color-100) !important;
+         border-color:     var(--mod-tools-color-200) !important;
+      }
+      .js-post-flag-bar.visible
+      {
+         display: flex !important;
+      }
+
+      .js-post-flag-bar > button
+      {
+         position: static !important;
+         align-self: center;
+         margin:  4px 4px 4px 0;
+         padding: 8px;
+      }
+
+      .js-post-flag-bar              > a.s-btn,
+      .js-post-flag-bar > div.d-flex > a.s-btn
+      {
+         background-color: var(--mod-tools-color-200);
+         border-color:     var(--mod-tools-color-200);
+      }
+
+      .js-post-flag-bar > a.s-btn:hover , .js-post-flag-bar > div.d-flex > a.s-btn:hover , .js-post-flag-bar > button:hover,
+      .js-post-flag-bar > a.s-btn:active, .js-post-flag-bar > div.d-flex > a.s-btn:active, .js-post-flag-bar > button:active
+      {
+         background-color: var(--mod-tools-color-300) !important;
+         border-color:     var(--mod-tools-color-400) !important;
+      }
+
+
+      .flagToC
+      {
+         list-style-type: none;
+         margin:  0;
+         padding: 0;
+      }
+
+      .flagToC > li
+      {
+         display: inline-block;
+         width: 32%;
+         min-width: 15em;
+         max-width: fit-content;
+         margin:  4px;
+         padding: 4px;
+         background-color: var(--white);
+         border: var(--su-static1) solid var(--mod-tools-color-200);
+         border-radius: var(--br-sm);
+         box-shadow: var(--bs-sm);
+      }
+
+      .flagToC > li ul
+      {
+         margin:  0;
+         padding: 0;
+      }
+      .flagToC > li ul > li::before
+      {
+         content: attr(data-count);
+         padding-right: 2px;
+         color: var(--fc-light);
+      }
+      .flagToC > li ul > li
+      {
+         text-overflow: ellipsis;
+         white-space: nowrap;
+         overflow: hidden;
+      }
+
+      .flagToC > li ul > li.inactive,
+      .flagToC > li ul > li.inactive a
+      {
+         opacity: 0.7;
+      }
+
+
+   ${makeWaffleBarTOCVertical ? `
+      .js-post-flag-bar
+      {
+         flex-direction: column;
+         width: 200px;
+         height: calc(100% - var(--top-bar-allocated-space));
+         border-right: 1px solid var(--mod-tools-color-200);
+      }
+
+      .js-post-flag-bar > button
+      {
+         align-self: end;
+         margin: 0;
+      }
+
+      .js-post-flag-bar > button:hover,
+      .js-post-flag-bar > button:active
+      {
+         background-color: var(--mod-tools-color-200) !important;
+         border-color:     var(--mod-tools-color-300) !important;
+      }
+
+      .js-post-flag-bar > div.d-flex > a.s-btn
+      {
+         width: 40%;
+         margin: 0 4px 4px 4px;
+         justify-content: center;
+      }
+      .js-post-flag-bar > div.d-flex > a.s-btn:last-of-type
+      {
+         flex-direction: row-reverse;
+      }
+
+      .js-post-flag-bar .flag-summary
+      {
+         overflow-x: clip;
+         overflow-y: auto;
+      }
+
+      .flagToC > li
+      {
+         display: block;
+         width:     auto;
+         min-width: auto;
+         max-width: none;
+      }
+   ` : ``}
+
+      /*
+         Post/Comment Flag Info Box
+       */
+
       .mod-tools.mod-tools-post,
       .mod-tools.mod-tools-comment-header
       {
@@ -151,14 +238,11 @@
          grid-column: 1 / span 2;
          margin-bottom: 15px;
          padding: 10px 12px;
-      ${makeFlagInfoStickyAndFloatAbovePost
-      ? `
+      ${makeFlagInfoStickyAndFloatAbovePost ? `
          position: sticky;
-         z-index: 1050;
+         z-index: var(--zi-banners);
          top: var(--top-bar-allocated-space);
-    ` : `
-
-    ` }
+      ` : `` }
       }
 
       .mod-tools.mod-tools-comment-header
@@ -171,24 +255,22 @@
       .mod-tools.mod-tools-comment-header
       {
          border: 1px solid var(--mod-tools-color-200);
-      ${makeFlagInfoStickyAndFloatAbovePost
-      ? `
-
-    ` : `
+      ${makeFlagInfoStickyAndFloatAbovePost ? `` : `
          box-shadow: none !important;
-    ` }
+      `}
       }
       .mod-tools.mod-tools-post.active-flag,
       .mod-tools.mod-tools-comment-header.active-flag
       {
          border: 1px solid var(--mod-tools-color-400);
-      ${makeFlagInfoStickyAndFloatAbovePost
-      ? `
-         box-shadow: var(--bs-md),
-                     0 0 6px var(--mod-tools-color-400) !important;
-    ` : `
-         box-shadow: none !important;
-    ` }
+         box-shadow:
+      ${makeFlagInfoStickyAndFloatAbovePost ? `
+                     var(--bs-md),
+                     0 0 6px var(--mod-tools-color-400) !important
+      ` : `
+                     none !important
+      `}
+                     ;
       }
 
       .mod-tools .mod-tools-comment > :first-child
@@ -231,6 +313,7 @@
          margin: 0;
          padding: 8px;
          border-radius: var(--br-sm);
+         color: var(--_bu-filled-fc);
 
          display: none;
       }
@@ -280,23 +363,17 @@
       .mod-tools ul.flags:not(:empty)
       {
          margin: 6px 0 0 10px;
-      ${makeFlagInfoStickyAndFloatAbovePost
-      ? `
+      ${makeFlagInfoStickyAndFloatAbovePost ? `
          min-height: 2em;
          max-height: 40vh;
-    ` : `
-
-    ` }
+      ` : ``}
       }
-   ${makeFlagInfoStickyAndFloatAbovePost
-   ? `
+   ${makeFlagInfoStickyAndFloatAbovePost ? `
       .mod-tools ul.flags:not(:empty).expanded
       {
          max-height: unset;
       }
- ` : `
-
- ` }
+   ` : ``}
 
       .mod-tools ul.flags > li
       {
@@ -440,8 +517,9 @@
          white-space: nowrap;
       }
 
-
-      /* Tweak deleted answer styles: */
+      /*
+         Deleted Answers:
+       */
 
       .question-page #answers .answer.deleted-answer
       {
@@ -449,8 +527,10 @@
          border-bottom: 1px solid var(--red-300);
       }
 
-
-      /* Style comment delete links (put in a consistent place): */
+      /*
+         Comment Delete Links
+         (put them in a consistent place):
+       */
 
       .comment, .comment .flags
       {
@@ -1291,7 +1371,7 @@
      <a class='show-all-flags' data-postid='${postId}'>${totalFlags} inactive flag(s) <span class='light'>(click to load)</span></a>
   </h3>
   <button class="ps-absolute t0 r0 s-popover--close s-btn s-btn__muted s-btn__icon" aria-label="Collapse" title="collapse flag dismissal interface">
-     <svg aria-hidden="true" class="svg-icon iconArrowDoubleUp native js-svg" width="18" height="18" viewBox="0 0 18 18">
+     <svg aria-hidden="true" class="svg-icon iconArrowDoubleUp js-svg" width="18" height="18" viewBox="0 0 18 18">
         <path d="m16.01 14.62-1.4 1.4L9 10.45l-5.59 5.59-1.4-1.41 7-7 7 7v-.01Zm0-5-1.4 1.4L9 5.45l-5.59 5.59-1.4-1.41 7-7 7 7v-.01Z"></path>
      </svg>
   </button>
@@ -1671,14 +1751,9 @@
             const flagCreationDate = flag.flaggers && flag.flaggers.length ? new Date(flag.flaggers.reduce( (min, cur) => Math.min(min, cur.flagCreationDate), Infinity)) : 0;
             for (const task of reviews.sort((a,b) => b.creationDate-a.CreationDate).filter(t => t.type === "low quality" && t.creationDate > flagCreationDate ) )
             {
-               if (task.result)
-               {
-                  $(`<div class='flag-outcome'><a href="${task.url}">reviewed</a>: <i>${task.result}</i> <span title="${window.FlagFilter.tools.formatISODate(task.resultDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(task.resultDate)}</span></div>`).appendTo(flagItem);
-               }
-               else
-               {
-                  $(`<div class='flag-outcome'><a href="${task.url}">in review</a> since <span title="${window.FlagFilter.tools.formatISODate(task.creationDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(task.creationDate)}</span></div>`).appendTo(flagItem);
-               }
+               const flagOutcomeHtml = (task.result) ? `<div class='flag-outcome'><a href="${task.url}">reviewed</a>: <i>${task.result}</i> <span title="${window.FlagFilter.tools.formatISODate(task.resultDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(task.resultDate)}</span></div>`
+                                                     : `<div class='flag-outcome'><a href="${task.url}">in review</a> since <span title="${window.FlagFilter.tools.formatISODate(task.creationDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(task.creationDate)}</span></div>`;
+               $(flagOutcomeHtml).appendTo(flagItem);
             }
          }
 
@@ -1740,15 +1815,17 @@
 
       function IsReviewFlag(flag)
       {
+         const descriptionLower = flag.description.toLowerCase();
          return flag.active &&
-                (flag.description.toLowerCase() === "not an answer"    ||
-                 flag.description.toLowerCase() === "very low quality" ||
+                (descriptionLower === "not an answer"    ||
+                 descriptionLower === "very low quality" ||
                  /Low answer quality score/.test(flag.description));
       }
 
       function UpdateWaffleBar()
       {
-         if (showTOCInWaffleBar)
+         const waffleBar = $('.js-post-flag-bar:not(.visible)');
+         if (showWaffleBarTOC)
          {
             let flagToC = $("<ul class='flagToC'>");
             for (const postId in flagCache)
@@ -1803,9 +1880,23 @@
                flagToC = $("<div style='padding:4px;' class='mx24'>All active flags on this page are currently in review; check back later to see if they were handled.</div>");
             }
 
-            $('#postflag-bar .flag-wrapper, #postflag-bar .flagToC, .js-post-flag-bar>div>div').remove();
-            $("<div class='flag-summary grid fl1 fd-column'>").insertBefore($('#postflag-bar .nav-button.prev, #postflag-bar .nav-button.close, .js-post-flag-bar>div>button').first()).append(flagToC);
-            $('#postflag-bar').show();
+            const navBtns  = waffleBar.find('a');
+            const prevBtn  = navBtns.first();
+            const nextBtn  = navBtns.last();
+            const contents = waffleBar.find('> div.flex--item');
+            const closeBtn = contents.find('> button');
+            closeBtn.insertBefore(nextBtn);
+            contents.remove();
+            $("<div class='flag-summary grid fl1 fd-column'>").insertBefore(closeBtn).append(flagToC);
+            if (makeWaffleBarTOCVertical)
+            {
+               closeBtn.prependTo(waffleBar);
+
+               const navBtnsContainer = ($("<div class='d-flex jc-space-between'>")).appendTo(waffleBar);
+               navBtnsContainer.append(prevBtn);
+               navBtnsContainer.append(nextBtn);
+            }
+            waffleBar.addClass('visible');
 
             function SummarizeFlags(flaggedPost, maxEntries)
             {
@@ -1832,7 +1923,7 @@
          }
          else
          {
-            $(".js-post-flag-bar").remove();
+            waffleBar.remove();
          }
       }
 
