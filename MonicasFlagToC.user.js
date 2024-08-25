@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.9.2
+// @version       1.9.3
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -361,6 +361,11 @@
       .mod-tools.mod-tools-post .dismiss-flag-popup-buttons .flag-dismiss-decline
       {
          color: var(--_bu-fc);
+      }
+      .mod-tools.mod-tools-post .dismiss-flag-popup-buttons .flag-dismiss-helpful:hover,
+      .mod-tools.mod-tools-post .dismiss-flag-popup-buttons .flag-dismiss-decline:hover
+      {
+         color: var(--_bu-fc-hover);
       }
 
       .mod-tools ul.flags, .mod-tools ul.reviews
