@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.9.1
+// @version       1.9.2
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -127,12 +127,12 @@
       }
 
 
-      .js-post-flag-bar .flag-summary
+      .js-post-flag-bar .flag-summary .note
       {
-         /* margin: 8px; */
          display: flex;
          justify-content: center;
          align-items: center;
+         margin: 8px;
       }
 
       .flagToC
@@ -1886,7 +1886,7 @@
 
             if (!Object.keys(flagCache).length)
             {
-               flagToC = $("<div>All active flags on this page are currently under community review; check back later to see if they were handled.</div>");
+               flagToC = $("<div class='note'>All active flags on this page are currently under community review; check back later to see if they were handled.</div>");
             }
 
             const navBtns  = waffleBar.find('a');
