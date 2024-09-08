@@ -4,13 +4,14 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       1.9.3
+// @version       2.0.0
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @supportURL    https://github.com/codygray/flagtools/issues
 //
 // @match         *://*.stackoverflow.com/questions/*
+// @match         *://*.stackoverflow.com/staging-ground/*
 // @match         *://*.stackexchange.com/questions/*
 // @match         *://*.superuser.com/questions/*
 // @match         *://*.serverfault.com/questions/*
@@ -259,6 +260,11 @@
          padding: 10px 12px;
          margin-top: -1px;
       }
+      body.staging-ground .mod-tools.mod-tools-comment-header
+      {
+         margin-top: -8px;
+         margin-bottom: 8px;
+      }
 
       .mod-tools.mod-tools-post,
       .mod-tools.mod-tools-comment-header
@@ -290,9 +296,15 @@
       {
          border-left: 8px solid var(--mod-tools-color-400);
       }
+      body.staging-ground .mod-tools .mod-tools-comment > :first-child
+      {
+         width:        calc(var(--su-static16) * 2) !important;
+         margin-left:  calc(var(--su-static16) * -1);
+         padding-left: calc(var(--su-static16) / 2);
+      }
 
-      .mod-tools.mod-tools-comment-header,
-      .mod-tools .mod-tools-comment > :first-child
+      body:not(.staging-ground) .mod-tools.mod-tools-comment-header,
+      body:not(.staging-ground) .mod-tools .mod-tools-comment > :first-child
       {
          /* compensate for border line */
          margin-left: -8px;
@@ -572,6 +584,18 @@
             width: 54px;
          }
       }
+
+      /*
+         Staging Ground Comment Tools
+         (make them always visible):
+       */
+
+       body.staging-ground .comment-body .hover-only-label
+       {
+          visibility: visible !important;
+       }
+
+       /* TODO: Insert "Delete" link inline, instead of leaving it buried in a drop-down menu.
       `;
 
       document.head.appendChild(flagStyles);
@@ -1350,7 +1374,7 @@
 
       function RefreshFlagsForPost(postId, expandComments)
       {
-         const postContainer = $(".answer[data-answerid='"+postId+"'],.question[data-questionid='"+postId+"']")
+         const postContainer = $(`.answer[data-answerid='${postId}'], .question[data-questionid='${postId}']`);
          if (postContainer.length)
          {
             return LoadAllFlags(postId)
@@ -1363,11 +1387,24 @@
       {
          $(".question, .answer").each(function()
          {
+            const isStagingGround = location.pathname.startsWith('/staging-ground/');
+
             const postContainer = $(this);
             const postId        = postContainer.data('questionid') || postContainer.data('answerid');
-            const issues        = postContainer.find(".js-post-issue");
-            const flagsLink     = issues.filter("a[href='/admin/posts/" + postId + "/show-flags']");
-            const commentsLink  = issues.filter("a[href='/admin/posts/" + postId + "/comments']");
+            let   flagsLink;
+            let   commentsLink;
+            if (!isStagingGround)
+            {
+               const issues     = postContainer.find(".js-post-issue");
+               flagsLink        = issues.filter(`a[href='/admin/posts/${postId}/show-flags']`);
+               commentsLink     = issues.filter(`a[href='/admin/posts/${postId}/comments']`);
+            }
+            else
+            {
+               const info       = postContainer.find(".js-meta-info");
+               flagsLink        = info.find(`a[href='/admin/posts/${postId}/show-flags/']`);
+               commentsLink     = info.find(`a[href='/admin/posts/${postId}/comments/']`);
+            }
             const flags         = flagCache[postId];
             const totalFlags    = flagsLink.length ? +flagsLink.text().match(/\d+/)[0] : 0;
 
@@ -1395,11 +1432,15 @@
 </div>`);
             if (makeFlagInfoStickyAndFloatAbovePost)
             {
-               tools.prependTo(postContainer.find("div.votecell + div.post-layout--right"));
+               const anchor = !isStagingGround ? postContainer.find("div.votecell + div.post-layout--right")
+                                               : postContainer;
+               tools.prependTo(anchor);
             }
             else
             {
-               tools.insertBefore(postContainer.find("div:has(>.comments)"));
+               const anchor = postContainer.find(!isStagingGround ? "div:has(>.comments)"
+                                                                  : ".js-meta-info");
+               tools.insertBefore(anchor);
             }
 
             tools.find("h3 + button.s-popover--close").click(function()
@@ -1423,7 +1464,8 @@
          const tools         = postContainer.find(".mod-tools-post");
          const modActions    = tools.find(".mod-actions").empty();
          const flagContainer = tools.find("ul.flags").empty();
-         const isQuestion    = ((postContainer.length === 1) && (postContainer[0].id === 'question'));
+         const isQuestion    = (postContainer.length === 1) && ((postContainer[0].id === 'question') ||
+                                                                (postContainer[0].classList.contains('question')));
 
          let activeCount           = 0;
          let inactiveCount         = 0;
@@ -1578,9 +1620,11 @@
 
          if (postFlags.commentFlags.length && forceCommentVisibility)
          {
+            // NOTE: None of these will be found for Staging Ground pages, but that is OK,
+            //       because the logic here will still end up showing the comment flags.
             const issues               = postContainer.find(".js-post-issue");
-            const moreCommentsLink     = $("#comments-link-" + postFlags.postId + " a.js-show-link:last:visible");
-            const deletedCommentsLink  = issues.filter("a[href='/admin/posts/" + postFlags.postId + "/comments']");
+            const moreCommentsLink     = $(`#comments-link-${postFlags.postId} a.js-show-link:last:visible`);
+            const deletedCommentsLink  = issues.filter(`a[href='/admin/posts/${postFlags.postId}/comments']`);
             const inactiveCommentFlags = !postFlags.commentFlags.every(f => f.active);
 
             // load comments to trigger flag display
@@ -1597,7 +1641,7 @@
                ShowCommentFlags(postFlags.postId);
             }
          }
-         else if (totalFlags > activeCount-inactiveCount || $("#comments-" + postFlags.postId + " .mod-tools-comment").length)
+         else if (totalFlags > activeCount-inactiveCount || $(`#comments-${postFlags.postId} .mod-tools-comment`).length)
          {
             ShowCommentFlags(postFlags.postId);
          }
@@ -1631,11 +1675,13 @@
 
       function ShowCommentFlags(postId)
       {
-         const commentContainer       = $("#comments-" + postId);
-         const postContainer          = commentContainer.closest(".question, .answer");
-         const tools                  = postContainer.find(".mod-tools-post");
-         const postFlags              = flagCache[postId];
-         let commentModToolsContainer = commentContainer.find(".mod-tools-comment-header");
+         const isStagingGround          = location.pathname.startsWith('/staging-ground/');
+         const commentContainer         = $(`#comments-${postId}`);
+         const postContainer            = !isStagingGround ? commentContainer.closest(".question, .answer")
+                                                           : commentContainer.closest(".js-post-content").find(".question");
+         const tools                    = postContainer.find(".mod-tools-post");
+         const postFlags                = flagCache[postId];
+         let   commentModToolsContainer = commentContainer.find(".mod-tools-comment-header");
 
          if (!postFlags || ((!postFlags.commentFlags.length || !commentContainer.length) && !postFlags.assumeInactiveCommentFlagCount))
          {
@@ -1648,27 +1694,36 @@
             commentModToolsContainer = $(`<div class="mod-tools mod-tools-comment-header">
                                              <h3 class="comment-flag-summary"></h3>
                                           </div>`);
-            commentContainer
-               .addClass("mod-tools")
-               .find(">ul.comments-list").before(commentModToolsContainer);
+            commentContainer.addClass("mod-tools");
+            if (!isStagingGround)  commentModToolsContainer.insertBefore(commentContainer.find(">ul.comments-list"));
+            else                   commentModToolsContainer.prependTo(commentContainer);
          }
 
-         commentContainer
-            .removeClass("dno")
-            .find(".comment").removeClass("active-flag").end()
-            .find(".comment-text .flags").remove();
+         // Remove everything that we added and start over.
+         if (!isStagingGround)
+         {
+            commentContainer.removeClass("dno")
+                            .find(".comment").removeClass("active-flag").end()
+                            .find(".comment-text .flags").parent().remove();
+         }
+         else
+         {
+            commentContainer.find(".comment").removeClass("active-flag")
+                                             .find(".flags").parent().remove();
+         }
 
          let activeCount   = 0;
          let inactiveCount = 0;
          let flagsShown    = 0;
          for (const flag of postFlags.commentFlags)
          {
-            const comment = commentContainer.find("#comment-" + flag.commentId);
-            let container = comment.find(".comment-text .flags");
+            const comment   = commentContainer.find(`#comment-${flag.commentId}`);
+            let   container = comment.find(".comment-text .flags");
             if (!container.length)
             {
                container = $('<div><ul class="flags"></ul></div>')
-                  .appendTo(comment.find(".comment-text"))
+                  .appendTo(comment.find(!isStagingGround ? ".comment-text"
+                                                          : ".comment-body"))
                   .find(".flags");
             }
 
@@ -1692,10 +1747,19 @@
             container.append(flagItem);
             if (!comment.find(".flag-dismiss-comment").length)
             {
-               flagDismiss
-                  .html("dismiss<br>flags")
-                  .removeClass("delete-tag")
-                  .appendTo(comment.find(".comment-actions"));
+               flagDismiss.removeClass("delete-tag");
+               if (!isStagingGround)
+               {
+                  flagDismiss
+                     .html("dismiss<br>flags")
+                     .appendTo(comment.find(".comment-actions"));
+                }
+               else
+               {
+                  flagDismiss
+                     .html("Dismiss Flags")
+                     .appendTo(comment.find(".hover-only-container"));
+               }
             }
          }
 
@@ -1731,7 +1795,7 @@
             if (flag.active)
             {
                flagItemHtml += `
-                  <a class="flag-dismiss-comment" title="dismiss this comment flag, marking it as declined"></a>`;
+                  <a class="flag-dismiss-comment" title="dismiss all pending flags on this comment, marking them as declined"></a>`;
             }
             flagItemHtml += '</span>';
          }
