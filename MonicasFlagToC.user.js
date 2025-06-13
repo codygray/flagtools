@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       2.0.0
+// @version       2.1.0
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -262,8 +262,8 @@
       }
       body.staging-ground .mod-tools.mod-tools-comment-header
       {
-         margin-top: -8px;
-         margin-bottom: 8px;
+         margin-top:    -8px;
+         margin-bottom:  8px;
       }
 
       .mod-tools.mod-tools-post,
@@ -430,6 +430,10 @@
       .mod-tools .flag-outcome
       {
          margin-left: 20px;
+      }
+      .mod-tools .flag-outcome.declined i
+      {
+         color: var(--red-600);
       }
 
       .comment .flag-dismiss-comment
@@ -1818,7 +1822,8 @@
 
          if (flag.result)
          {
-            $("<div class='flag-outcome'><i></i></div>")
+            const declinedClass = (flag.result.toUpperCase().startsWith('DECLINED')) ? ' declined' : '';
+            $(`<div class='flag-outcome${declinedClass}'><i></i></div>`)
                .find("i").text(flag.result).end()
                .append(flag.resultUser ? `<span> &ndash; </span><a href="/users/${flag.resultUser.userId}" class="flag-creation-user comment-user">${flag.resultUser.name}${flag.resultUser.isMod ? '<span class="mod-flair mtn2" title="Moderator">♦</span>' : ''}</a>` : '<span> &ndash; </span>')
                .append(`<span class="flag-creation-date comment-date" dir="ltr"> <span title="${window.FlagFilter.tools.formatISODate(flag.resultDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(flag.resultDate)}</span></span>`)
