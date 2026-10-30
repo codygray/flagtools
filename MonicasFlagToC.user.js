@@ -4,7 +4,7 @@
 // @description   Implement https://meta.stackexchange.com/questions/305984/suggestions-for-improving-the-moderator-flag-overlay-view/305987#305987
 // @author        Cody Gray
 // @author        Shog9
-// @version       2.1.0
+// @version       2.1.1
 // @homepageURL   https://github.com/codygray/flagtools
 // @updateURL     https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
 // @downloadURL   https://github.com/codygray/flagtools/raw/codygray-updates/MonicasFlagToC.user.js
@@ -1281,6 +1281,23 @@
    {
       let flagCache   = {};
       let waffleFlags = GetFlagInfoFromWaffleBar();
+
+      // Support both numeric user IDs and username-only profile URLs.
+      function getUserInfo(element)
+      {
+         if (!element)
+         {
+            return { userId: null, userUrl: null };
+         }
+
+         const url   = new URL(element.href, location.origin);
+         const match = url.pathname.match(/^\/users\/(-?\d+)(?:\/|$)/);
+
+         return {
+            userId:  match ? +match[1] : null,
+            userUrl: url.pathname + url.search + url.hash
+         };
+      }
       for (const fp of waffleFlags)
       {
          flagCache[fp.postId] = fp;
@@ -1825,7 +1842,24 @@
             const declinedClass = (flag.result.toUpperCase().startsWith('DECLINED')) ? ' declined' : '';
             $(`<div class='flag-outcome${declinedClass}'><i></i></div>`)
                .find("i").text(flag.result).end()
-               .append(flag.resultUser ? `<span> &ndash; </span><a href="/users/${flag.resultUser.userId}" class="flag-creation-user comment-user">${flag.resultUser.name}${flag.resultUser.isMod ? '<span class="mod-flair mtn2" title="Moderator">♦</span>' : ''}</a>` : '<span> &ndash; </span>')
+               .append(function()
+               {
+                  const userLink = flag.resultUser?.userUrl
+                     ? $("<a>")
+                        .attr("href", flag.resultUser.userUrl)
+                        .addClass("flag-creation-user comment-user")
+                        .text(flag.resultUser.name)
+                     : null;
+
+                  if (userLink && flag.resultUser.isMod)
+                  {
+                     userLink.append('<span class="mod-flair mtn2" title="Moderator">♦</span>');
+                  }
+
+                  return userLink
+                     ? $("<span>").append(" &ndash; ", userLink)
+                     : $("<span>").text(" – ");
+               }())
                .append(`<span class="flag-creation-date comment-date" dir="ltr"> <span title="${window.FlagFilter.tools.formatISODate(flag.resultDate)}" class="relativetime-clean">${window.FlagFilter.tools.formatDate(flag.resultDate)}</span></span>`)
                .appendTo(flagItem);
          }
@@ -1847,8 +1881,10 @@
             {
                if (!user)  { continue; }
 
-               const userLink = user.name
-                  ? $(`<a href="/users/${user.userId}" class="flag-creation-user comment-user"></a>`)
+               const userLink = user.name && user.userUrl
+                  ? $("<a>")
+                     .attr("href", user.userUrl)
+                     .addClass("flag-creation-user comment-user")
                      .text(user.name)
                      .wrap('<div></div>').parent()
                      .html()
@@ -2068,12 +2104,12 @@
                   result:      (result && result.textContent.trim()) || "",
                   resultDate:  deleted ? window.FlagFilter.tools.parseISODate(deleted.title) : null,
                   resultUser:  {
-                                  userId: handler ? +handler.href.match(/\/users\/([-\d]+)/)[1] : -1,
+                                  ...getUserInfo(handler),
                                   name:  (handler && handler.textContent.trim()) || "",
-                                  isMod: isMod
+                                  isMod: !!isMod
                                },
                   flaggers:   [{
-                                  userId:           flagger ? +flagger.href.match(/\/users\/([-\d]+)/)[1] : -1,
+                                  ...getUserInfo(flagger),
                                   name:             (flagger && flagger.textContent.trim()) || "",
                                   flagCreationDate: window.FlagFilter.tools.parseISODate(created.title)
                               }],
@@ -2119,7 +2155,7 @@
             {
                return Object.values(flagList.reduce( function(acc, f)
                   {
-                     const key       = [f.commentId, f.description, f.active, f.resultDate, f.resultUser && f.resultUser.userId].join(":");
+                     const key       = [f.commentId, f.description, f.active, f.resultDate, f.resultUser && (f.resultUser.userUrl || f.resultUser.userId)].join(":");
                      const composite = acc[key] || {
                         commentId:   f.commentId,
                         description: f.description,
@@ -2169,9 +2205,8 @@
                            flaggers:    mess.find(">span>a[href^='/users/']")
                               .map(function()
                               {
-                                 const userId = this.href.match(/\/users\/([-\d]+)/);
                                  return {
-                                    userId:           userId && userId.length > 0 ? +userId[1] : null,
+                                    ...getUserInfo(this),
                                     name:             this.textContent,
                                     flagCreationDate: window.FlagFilter.tools.parseISODate($(this)
                                        .parent()
@@ -2195,9 +2230,8 @@
                         const flaggers    = mess.find(">span>a[href^='/users/']")
                               .map(function()
                               {
-                                 const userId = this.href.match(/\/users\/([-\d]+)/);
                                  return {
-                                    userId:           userId && userId.length > 0 ? +userId[1] : null,
+                                    ...getUserInfo(this),
                                     name:             this.textContent,
                                     flagCreationDate: window.FlagFilter.tools.parseISODate($(this)
                                        .parent()
